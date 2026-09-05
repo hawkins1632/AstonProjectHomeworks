@@ -8,9 +8,21 @@ import org.hibernate.Transaction;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * DAO для выполнения CRUD операций с сущностью {@link User}.
+ *
+ * Использует Hibernate для взаимодействия с базой данных и управляет транзакциями при выполнении операций
+ */
 @Slf4j
 public class UserDao implements Dao<User>{
 
+    /**
+     * Сохраняет нового пользователя в базе данных.
+     *
+     * @param object пользователь для сохранения
+     * @return сохранённый пользователь
+     * @throws RuntimeException если произошла ошибка при сохранении
+     */
     @Override
     public User save(User object) {
         Transaction transaction = null;
@@ -31,34 +43,64 @@ public class UserDao implements Dao<User>{
     }
 
     /**
-     * Находит пользователя в БД по его уникальному ID
+     * Находит пользователя в базе данных по его уникальному идентификатору.
      *
-     * @param id уникальный идентификатор пользователя в системе
-     * @return объект найденного пользователя User, либо null если запись отсутствует
+     * @param id уникальный идентификатор пользователя
+     * @return {@link Optional} с найденным пользователем или пустой {@link Optional},
+     * если пользователь не найден
+     * @throws RuntimeException если произошла ошибка при поиске
      */
+    @Override
     public Optional<User> findById(Long id){
-        // Открываем сессию взаимодействия с БД через утильный класс
+       Transaction transaction = null;
+
        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
-           // Для чтения транзакции не требуются, используем встроенный метод get
-           return Optional.ofNullable(session.get(User.class, id));
+           transaction = session.beginTransaction();
+
+           Optional<User>user = Optional.ofNullable(session.get(User.class, id));
+
+           transaction.commit();
+           return user;
+       }catch (Exception e){
+           if (transaction != null){
+               transaction.rollback();
+           }
+           log.error("Failed to find user with id: {}",id,e);
+           throw new RuntimeException("Failed to find user with id: " +id,e);
        }
    }
 
     /**
-     * Извлекает полный список всех зарегистрированных пользователей из базы данных.
-     * Использует язык запросов HQL
+     * Извлекает список всех пользователей из базы данных.
      *
-     * @return список (List) всех существующих объектов User в базе данных
+     * @return список всех пользователей
+     * @throws RuntimeException если произошла ошибка при получении пользователей
      */
+    @Override
    public List<User> findAll(){
-       // Открываем автоматическую сессию в блоке try-with-resources
-       try(Session session = HibernateUtil.getSessionFactory().openSession()) {
-           // Создаём HQL запрос "from User", извлекающий все записи из таблицы
-           return session.createQuery("from User", User.class).list();
+       Transaction transaction = null;
 
+       try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+           transaction = session.beginTransaction();
+
+           List<User> users = session.createQuery("From User", User.class).list();
+            transaction.commit();
+            return users;
+       }catch (Exception e){
+           if (transaction != null){
+               transaction.rollback();
+           }
+           log.error("Failed to find all users",e);
+           throw new RuntimeException("Failed to find all users",e);
        }
    }
-
+    /**
+     * Обновляет существующего пользователя в базе данных.
+     *
+     * @param object пользователь с обновлёнными данными
+     * @return обновлённый пользователь
+     * @throws RuntimeException если произошла ошибка при обновлении
+     */
     @Override
     public User update(User object) {
         Transaction transaction = null;
@@ -76,7 +118,12 @@ public class UserDao implements Dao<User>{
             throw new RuntimeException("Failed to update user", e);
         }
     }
-
+    /**
+     * Удаляет пользователя из базы данных по его идентификатору.
+     *
+     * @param id уникальный идентификатор пользователя
+     * @throws RuntimeException если пользователь не найден или произошла ошибка при удалении
+     */
     @Override
     public void delete(Long id) {
         Transaction transaction = null;
@@ -91,6 +138,7 @@ public class UserDao implements Dao<User>{
                 transaction.rollback();
                 log.warn("User not found for deletion with id: {}", id);
                 throw new RuntimeException("User not found with id: " + id);
+
             }
         } catch (Exception e) {
             if (transaction != null) {

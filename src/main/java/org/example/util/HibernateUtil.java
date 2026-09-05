@@ -1,15 +1,20 @@
 package org.example.util;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Утильный класс для настройки и управления фабрики сессий Hibernate.
- * Обеспечивает создание единственного экземпляра SessionFactory(паттерн Singleton)
- * для обеспечения взаимодействия с базой данных PostgreSQL.
+ * Утилитный класс для настройки и управления фабрики сессий Hibernate.
+ * Обеспечивает создание единственного экземпляра SessionFactory, который используется всеми DAO
+ * для взаимодействия с базой данных PostgreSQL.
  *
  * @author Морозов Павел
  */
 public class HibernateUtil {
+
+    private static final Logger log = LoggerFactory.getLogger(HibernateUtil.class);
     // Единственный неизменяемый экземпляр фабрики сессий для приложения
     private static final SessionFactory sessionFactory = buildSessionFactory();
 
@@ -24,9 +29,9 @@ public class HibernateUtil {
         try{
             // Создаём объект конфигурации, читаем xml файл и строим фабрику
             return new Configuration().configure().buildSessionFactory();
-        }catch (Throwable ex){
+        }catch (Exception ex){
             //Если БД отключена или пароль неверный - логируем критическую ошибку в консоль
-            System.err.println("Initial Session Factory creation failed." + ex);
+            log.error("Initial SessionFactory creation failed.", ex);
             throw new ExceptionInInitializerError(ex);
         }
     }
