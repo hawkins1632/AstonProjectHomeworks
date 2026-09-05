@@ -15,7 +15,7 @@
         <!-- Автоматическое создание и обновление таблиц на основе Java-классов -->
         <property name="hbm2ddl.auto">update</property>
         <!-- Вывод сгенерированных SQL запросов в консоль -->
-        <property name="show_sql">true</property>
+        <property name="show_sql">false</property>
         <property name="format_sql">true</property>
         <!-- Регистрация сущности -->
         <mapping class="org.example.model.User"/>

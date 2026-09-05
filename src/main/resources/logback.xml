@@ -13,7 +13,7 @@
     <!-- Чистим технический спам от библиотек сборщика Maven -->
     <logger name="org.jboss" level="WARN"/>
     <!-- Главный уровень логирования для всего приложения -->
-    <root level="INFO">
+    <root level="WARN">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

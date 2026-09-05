@@ -8,7 +8,7 @@ import java.util.Optional;
  *
  * @param <T> тип сущности, с которой работает DAO
  */
-public interface Dao <T>{
+public interface Dao <T> {
     /**
      * Сохраняет новую сущность в БД.
      *
