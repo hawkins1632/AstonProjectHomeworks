@@ -8,6 +8,12 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+/**
+ * Сущность пользователя.
+ *
+ * Содержит основную информацию о пользователе:
+ * имя, электронную почту, возраст и дату создания в бд.
+ */
 @NoArgsConstructor
 @Getter
 @Setter
@@ -31,13 +37,22 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-
+    /**
+     * Создаёт нового опльзователя.
+     *
+     * @param name имя пользователя
+     * @param email электронная почта пользователя
+     * @param age возраст пользователя
+     */
     public User(String name, String email, Integer age) {
         this.name = name;
         this.email = email;
         this.age = age;
     }
 
+    /**
+     * Устанавливает дату создания перед сохранением пользователя в БД.
+     */
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
@@ -51,6 +66,12 @@ public class User {
                 id, name, email, age, createdAt);
     }
 
+    /**
+     * Сравнивает пользователей по их идентификатору и основным данным
+     *
+     * @param object объект для сравнения
+     * @return {@code true}, если пользователи равны
+     */
     @Override
     public boolean equals(Object object) {
         if (object == null || getClass() != object.getClass()) return false;
@@ -60,6 +81,11 @@ public class User {
                 Objects.equals(createdAt, user.createdAt);
     }
 
+    /**
+     * Возвращает хеш код пользователя на основе полей, используемых в {@link #equals(Object).}
+     *
+     * @return хеш код пользователя
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id, name, email, age, createdAt);
