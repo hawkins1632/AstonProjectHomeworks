@@ -45,4 +45,15 @@ public class HibernateUtil {
     public static SessionFactory getSessionFactory(){
         return sessionFactory;
     }
+
+    /**
+     * Закрывает фабрику сессий и освобождает все занятые ресурсы и соединения.
+     * Должен вызываться при завершении рабботы консольного приложения.
+     */
+    public static void shutdown(){
+        if (sessionFactory != null && sessionFactory.isClosed()){
+            log.info("Закрытие Hibernate SessionFactory и освобождение ресурсов.");
+            sessionFactory.close();
+        }
+    }
 }
