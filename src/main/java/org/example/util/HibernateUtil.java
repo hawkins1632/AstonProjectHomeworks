@@ -28,10 +28,10 @@ public class HibernateUtil {
      */
     private static SessionFactory buildSessionFactory() {
         try {
-            // Создаём объект конфигурации, читаем xml файл и строим фабрику
+            // Создаёт объект конфигурации, читаем xml файл и строим фабрику
             return new Configuration().configure().buildSessionFactory();
         } catch (Exception ex){
-            //Если БД отключена или пароль неверный - логируем критическую ошибку в консоль
+            //Если БД отключена или пароль неверный - логирует критическую ошибку в консоль
             log.error("Initial SessionFactory creation failed.", ex);
             throw new ExceptionInInitializerError(ex);
         }
