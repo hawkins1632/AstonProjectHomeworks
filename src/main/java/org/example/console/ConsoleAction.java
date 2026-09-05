@@ -9,7 +9,11 @@ import org.example.util.InputUtils;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
-
+/**
+ * Перечисление, представляющее доступные действия в консольном приложении.
+ * Каждая команда инкапсулирует свою логику взаимодействия с пользователем
+ * и вызовы соответствующих методов уровня доступа к данным (DAO).
+ */
 @Getter
 @AllArgsConstructor
 public enum ConsoleAction {
@@ -141,7 +145,6 @@ public enum ConsoleAction {
     EXIT(0, "Exit") {
         @Override
         public void execute(Scanner scanner) {
-            scanner.close();
         }
     };
 

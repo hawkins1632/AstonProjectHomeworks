@@ -38,7 +38,7 @@ public class User {
     private LocalDateTime createdAt;
 
     /**
-     * Создаёт нового опльзователя.
+     * Создаёт нового пользователя.
      *
      * @param name имя пользователя
      * @param email электронная почта пользователя
