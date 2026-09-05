@@ -37,7 +37,6 @@ public class UserDao implements Dao<User>{
                 transaction.rollback();
             }
             log.error("Failed to save user: {}", object, e);
-            //TODO: create own Exception
             throw new RuntimeException("Failed to save user", e);
         }
     }
@@ -60,6 +59,7 @@ public class UserDao implements Dao<User>{
            Optional<User>user = Optional.ofNullable(session.get(User.class, id));
 
            transaction.commit();
+           log.info("Запрос findById для ID {}: {}", id, user.isPresent() ? "найден" : "не найден");
            return user;
        }catch (Exception e){
            if (transaction != null){
@@ -85,6 +85,7 @@ public class UserDao implements Dao<User>{
 
            List<User> users = session.createQuery("From User", User.class).list();
             transaction.commit();
+            log.info("Успешно извлечено пользователей из БД: {}", users.size());
             return users;
        }catch (Exception e){
            if (transaction != null){
