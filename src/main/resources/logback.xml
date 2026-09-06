@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <!-- Настройка вывода логов в стандартную консоль (System.out) -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- Шаблон вывода: Время[Имя потока] Уровень-Лога Имя-Класса Текст сообщения -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <!-- Чистим технический спам от Hibernate, ставим уровень WARN - выводит только ошибки и предупреждения -->
+    <logger name="org.hibernate" level="WARN"/>
+    <!-- Чистим технический спам от библиотек сборщика Maven -->
+    <logger name="org.jboss" level="WARN"/>
+    <!-- Главный уровень логирования для всего приложения -->
+    <root level="WARN">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

@@ -4,3 +4,6 @@ target/
 *.iws
 .DS_Store
 Thumbs.db
+
+# Tests
+/src/test/
