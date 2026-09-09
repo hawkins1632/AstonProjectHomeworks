@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.example.dao.UserDao;
 import org.example.model.User;
+import org.example.service.UserServiceImpl;
 import org.example.util.InputUtils;
 
 import java.util.List;
@@ -31,11 +32,11 @@ public enum ConsoleAction {
             int age = InputUtils.readPositiveInt(scanner);
 
             try {
-                User user = new User(name, email, age);
-                User savedUser = UserDao.getInstance().save(user);
+                User savedUser = UserServiceImpl.getInstance().createUser(name,email,age);
                 System.out.println("User created successfully!");
                 System.out.println(savedUser);
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                System.out.println("Execution failed: " + e.getMessage());
             }
         }
     },
@@ -47,14 +48,11 @@ public enum ConsoleAction {
             long id = InputUtils.readPositiveLong(scanner);
 
             try {
-                Optional<User> userOptional = UserDao.getInstance().findById(id);
-                if (userOptional.isPresent()) {
-                    System.out.println("User found:");
-                    System.out.println(userOptional.get());
-                } else {
-                    System.out.println("User not found with ID: " + id);
-                }
-            }  catch (Exception ignored) {
+                User user = UserServiceImpl.getInstance().getUserById(id);
+                System.out.println("User found: ");
+                System.out.println(user);
+            }  catch (Exception e) {
+                System.out.println("Execution failed: " + e.getMessage());
             }
         }
     },
@@ -63,7 +61,7 @@ public enum ConsoleAction {
         @Override
         public void execute(Scanner scanner) {
             try {
-                List<User> users = UserDao.getInstance().findAll();
+                List<User> users = UserServiceImpl.getInstance().getAllUsers();
                 if (users.isEmpty()) {
                     System.out.println("No users found.");
                 } else {
@@ -73,7 +71,8 @@ public enum ConsoleAction {
                     users.forEach(System.out::println);
                     System.out.println("─".repeat(60));
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                System.out.println("Execution failed: " + e.getMessage());
             }
         }
     },
@@ -85,31 +84,26 @@ public enum ConsoleAction {
             long id = InputUtils.readPositiveLong(scanner);
 
             try {
-                Optional<User> existingUser = UserDao.getInstance().findById(id);
-                if (existingUser.isEmpty()) {
-                    System.out.println("User not found with ID: " + id);
-                    return;
-                }
-
-                User user = existingUser.get();
+                User user = UserServiceImpl.getInstance().getUserById(id);
                 System.out.println("Current user data:");
                 System.out.println(user);
                 System.out.println("─".repeat(40));
 
                 System.out.print("Enter new name: ");
-                user.setName(InputUtils.readString(scanner));
+                String newName = InputUtils.readString(scanner);
 
                 System.out.print("Enter new email: ");
-                user.setEmail(InputUtils.readString(scanner));
+                String newEmail = InputUtils.readString(scanner);
 
                 System.out.print("Enter new age: ");
-                user.setAge(InputUtils.readPositiveInt(scanner));
+                int newAge = InputUtils.readPositiveInt(scanner);
 
-                User updatedUser = UserDao.getInstance().update(user);
+                User updatedUser = UserServiceImpl.getInstance().updateUser(id,newName, newEmail, newAge);
                 System.out.println("User updated successfully!");
                 System.out.println(updatedUser);
 
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                System.out.println("Execution failed: " + e.getMessage());
             }
         }
     },
@@ -121,23 +115,20 @@ public enum ConsoleAction {
             long id = InputUtils.readPositiveLong(scanner);
 
             try {
-                Optional<User> user = UserDao.getInstance().findById(id);
-                if (user.isEmpty()) {
-                    System.out.println("User not found with ID: " + id);
-                    return;
-                }
-
+                User user = UserServiceImpl.getInstance().getUserById(id);
                 System.out.println("User to delete:");
-                System.out.println(user.get());
+                System.out.println(user);
+
                 System.out.print("Are you sure you want to delete this user? (y/n): ");
                 if (InputUtils.readBoolean(scanner)) {
-                    UserDao.getInstance().delete(id);
+                    UserServiceImpl.getInstance().deleteUser(id);
                     System.out.println("User deleted successfully!");
                 } else {
                     System.out.println("Deletion cancelled.");
                 }
 
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                System.out.println("Execution failed: " + e.getMessage() );
             }
         }
     },
