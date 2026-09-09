@@ -42,7 +42,7 @@ public class HibernateUtil {
      * Должен вызываться при завершении рабботы консольного приложения.
      */
     public static void shutdown() {
-        if (sessionFactory != null && sessionFactory.isClosed()) {
+        if (sessionFactory != null && !sessionFactory.isClosed()) {
             log.info("Закрытие Hibernate SessionFactory и освобождение ресурсов.");
             sessionFactory.close();
         }

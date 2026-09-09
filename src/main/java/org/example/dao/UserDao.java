@@ -41,7 +41,7 @@ public class UserDao implements Dao<User> {
                 log.info("User saved successfully: {}", object);
                 return object;
             } catch (Exception e) {
-                if (transaction != null && transaction.isActive()) {
+                if (transaction != null && transaction.getStatus().canRollback()) {
                     transaction.rollback();
                 }
                 log.error("Failed to save user: {}", object);
@@ -68,7 +68,7 @@ public class UserDao implements Dao<User> {
                 log.info("User with id {} is {}", id, user.isPresent() ? "found" : "not found");
                 return user;
             } catch (Exception e) {
-                if (transaction != null && transaction.isActive()) {
+                if (transaction != null && transaction.getStatus().canRollback()) {
                     transaction.rollback();
                 }
                 log.error("Failed to find user with id: {}", id);
@@ -93,7 +93,7 @@ public class UserDao implements Dao<User> {
                 log.info("Found {} users", users.size());
                 return users;
             } catch (Exception e) {
-                if (transaction != null && transaction.isActive()) {
+                if (transaction != null && transaction.getStatus().canRollback()) {
                     transaction.rollback();
                 }
                 log.error("Failed to find all users");
@@ -118,7 +118,7 @@ public class UserDao implements Dao<User> {
                 log.info("User updated successfully: {}", updatedUser);
                 return updatedUser;
             } catch (Exception e) {
-                if (transaction != null && transaction.isActive()) {
+                if (transaction != null && transaction.getStatus().canRollback()) {
                     transaction.rollback();
                 }
                 log.error("Failed to update user: {}", object);
@@ -151,7 +151,7 @@ public class UserDao implements Dao<User> {
             } catch (UserNotFoundException e) {
                 throw e;
             } catch (Exception e) {
-                if (transaction != null && transaction.isActive()) {
+                if (transaction != null && transaction.getStatus().canRollback()) {
                     transaction.rollback();
                 }
                 log.error("Failed to delete user with id: {}", id);
