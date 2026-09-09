@@ -14,7 +14,7 @@ public class Main {
      * Создает экземпляр консольного менеджера и запускает его цикл.
      * В блоке {@code finally} происходит закрытие фабрики сессий Hibernate.
      *
-     * @param args аргументы строки( не используются)
+     * @param args аргументы строки(не используются)
      */
     public static void main(String[] args) {
         try {

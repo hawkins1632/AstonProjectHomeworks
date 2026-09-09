@@ -32,7 +32,8 @@ public enum ConsoleAction {
             int age = InputUtils.readPositiveInt(scanner);
 
             try {
-                User savedUser = UserServiceImpl.getInstance().createUser(name,email,age);
+                User user = new User(name, email, age);
+                User savedUser = UserServiceImpl.getINSTANCE().createUser(user);
                 System.out.println("User created successfully!");
                 System.out.println(savedUser);
             } catch (Exception e) {
@@ -48,7 +49,7 @@ public enum ConsoleAction {
             long id = InputUtils.readPositiveLong(scanner);
 
             try {
-                User user = UserServiceImpl.getInstance().getUserById(id);
+                User user = UserServiceImpl.getINSTANCE().getUserById(id);
                 System.out.println("User found: ");
                 System.out.println(user);
             }  catch (Exception e) {
@@ -61,7 +62,7 @@ public enum ConsoleAction {
         @Override
         public void execute(Scanner scanner) {
             try {
-                List<User> users = UserServiceImpl.getInstance().getAllUsers();
+                List<User> users = UserServiceImpl.getINSTANCE().getAllUsers();
                 if (users.isEmpty()) {
                     System.out.println("No users found.");
                 } else {
@@ -84,7 +85,7 @@ public enum ConsoleAction {
             long id = InputUtils.readPositiveLong(scanner);
 
             try {
-                User user = UserServiceImpl.getInstance().getUserById(id);
+                User user = UserServiceImpl.getINSTANCE().getUserById(id);
                 System.out.println("Current user data:");
                 System.out.println(user);
                 System.out.println("─".repeat(40));
@@ -98,7 +99,9 @@ public enum ConsoleAction {
                 System.out.print("Enter new age: ");
                 int newAge = InputUtils.readPositiveInt(scanner);
 
-                User updatedUser = UserServiceImpl.getInstance().updateUser(id,newName, newEmail, newAge);
+                User updatedData = new User(newName, newEmail, newAge);
+                User updatedUser = UserServiceImpl.getINSTANCE().updateUser(id, updatedData);
+
                 System.out.println("User updated successfully!");
                 System.out.println(updatedUser);
 
@@ -115,13 +118,13 @@ public enum ConsoleAction {
             long id = InputUtils.readPositiveLong(scanner);
 
             try {
-                User user = UserServiceImpl.getInstance().getUserById(id);
+                User user = UserServiceImpl.getINSTANCE().getUserById(id);
                 System.out.println("User to delete:");
                 System.out.println(user);
 
                 System.out.print("Are you sure you want to delete this user? (y/n): ");
                 if (InputUtils.readBoolean(scanner)) {
-                    UserServiceImpl.getInstance().deleteUser(id);
+                    UserServiceImpl.getINSTANCE().deleteUser(id);
                     System.out.println("User deleted successfully!");
                 } else {
                     System.out.println("Deletion cancelled.");

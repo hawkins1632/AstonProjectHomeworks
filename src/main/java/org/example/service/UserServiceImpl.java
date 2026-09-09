@@ -1,92 +1,83 @@
 package org.example.service;
-import org.example.dao.Dao;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.example.dao.UserDao;
 import org.example.exception.UserNotFoundException;
 import org.example.model.User;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
- * Реализации сервиса пользователей.
- * Управляет бизнес-правилами, валидацией сущностей перед отправкой в слой DAO
- * и обработкой исключений. Реализован как Singleton.
+ * Реализация интерфейса {@link UserService} для управления бизнес-логикой пользователей.
+ * Отвечает за валидацию идентификаторов и персональных данных, обработку бизнес-исключений
+ * и прямое взаимодействие со слоем доступа к данным через {@link UserDao}.
  */
-public class UserServiceImpl implements UserService{
-    private static final UserServiceImpl INSTANCE = new UserServiceImpl(org.example.dao.UserDao.getInstance());
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class UserServiceImpl implements UserService {
 
-    private final Dao<User> userDao;
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$\"");
 
-    /**
-     * Конструктор скрыт, чтобы никто не мог создать дубликат сервиса через "new".
-     * Принимает интерфейс Dao через параметры (Dependency Injection), что необходимо
-     * для подстановки моков в Mockito тестах.
-     * @param userDao объект доступа к данным пользователей.
-     */
-    private UserServiceImpl(Dao<User>userDao){
-        this.userDao = userDao;
-    }
+    @Getter
+    private static final UserServiceImpl INSTANCE = new UserServiceImpl();
 
-    /**
-     * Публичный метод для получения доступа к единственному экземпляру сервиса.
-     * @return экземпляр {@link UserService}
-     */
-    public static UserService getInstance(){
-        return INSTANCE;
+    @Override
+    public User createUser(User user) {
+        validateUserData(user);
+        return UserDao.getInstance().save(user);
     }
 
     @Override
-    public User createUser(String name, String email, Integer age){
-        validateUserData(name,email,age);
-        User user = new User(name,email,age);
-        return userDao.save(user);
+    public User getUserById(long id) {
+        validateId(id);
+        return UserDao.getInstance().findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Override
-    public User getUserById(Long id){
-        if (id == null){
-            throw new IllegalArgumentException("Идентификатор пользователя (ID) не может быть null");
+    public List<User> getAllUsers() {
+        return UserDao.getInstance().findAll();
+    }
+
+    @Override
+    public User updateUser(long id, User updatedData) {
+        validateId(id);
+        validateUserData(updatedData);
+
+        updatedData.setId(id);
+
+        return UserDao.getInstance().update(updatedData);
+    }
+
+    @Override
+    public void deleteUser(long id) {
+        validateId(id);
+
+        UserDao.getInstance().findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+
+        UserDao.getInstance().delete(id);
+    }
+
+    private void validateId(long id) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("User ID must be a positive number");
         }
-        return userDao.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
-    @Override
-    public List<User> getAllUsers(){
-        return userDao.findAll();
-    }
-
-    @Override
-    public User updateUser(Long id, String name, String  email, Integer age){
-        User existingUser = getUserById(id);
-
-        validateUserData(name,email,age);
-
-        existingUser.setName(name);
-        existingUser.setEmail(email);
-        existingUser.setAge(age);
-
-        return userDao.update(existingUser);
-
-    }
-
-    @Override
-    public void deleteUser(Long id){
-        getUserById(id);
-
-        userDao.delete(id);
-    }
-
-    /**
-     * Внутренний приватный метод для централизованной валидации бизнес правил пользователя
-     * @throws IllegalArgumentException если данные некорректны
-     */
-    private void validateUserData(String name, String email, Integer age){
-        if (name == null || name.isBlank()){
-            throw new IllegalArgumentException("Имя пользователя не может быть пустым");
+    private void validateUserData(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User object cannot be null");
         }
-        if (email == null || email.isBlank() || !email.contains("@") || !email.contains(".")){
-            throw new IllegalArgumentException("Некорректный формат email. Он должен содержать '@'  и '.'");
+        if (user.getName() == null || user.getName().isBlank()) {
+            throw new IllegalArgumentException("User name cannot be empty");
         }
-        if (age == null || age <0){
-            throw new IllegalArgumentException("Возраст пользователя не может быть отрицательным");
+        if (user.getEmail() == null || user.getEmail().isBlank() || !EMAIL_PATTERN.matcher(user.getEmail()).matches()) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
+        if (user.getAge() < 0) {
+            throw new IllegalArgumentException("User age cannot be negative");
         }
     }
 }

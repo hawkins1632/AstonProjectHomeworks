@@ -1,54 +1,56 @@
 package org.example.service;
+
 import org.example.model.User;
 import java.util.List;
 
 /**
  * Сервис для управления бизнес-логикой работы с пользователями.
- * Определяет контракт для валидации данных, обработки исключений и координирует
- * взаимодействие между консольным интерфейсом и слоем доступа к данным (DAO).
+ * Координирует валидацию данных, обработку исключений и взаимодействие со слоем доступа к данным.
  */
 public interface UserService {
 
     /**
-     * Создаёт и сохраняет нового пользователя в системе после прохождения валидации
-     * @param name имя пользователя
-     * @param email электронная почта пользователя
-     * @param age возраст пользователя
-     * @return сохранённый объект {@link User} с присвоенным идентификатором
-     * @throws IllegalArgumentException если входные данные не прошли валидацию
+     * Создает нового пользователя в системе после предварительной валидации его данных.
+     *
+     * @param user объект пользователя, содержащий данные для регистрации
+     * @return сохраненный объект пользователя с присвоенным уникальным идентификатором
+     * @throws IllegalArgumentException если переданный объект или его поля не прошли валидацию
      */
-    User createUser(String name, String email, Integer age);
+    User createUser(User user);
 
     /**
-     * Возвращает пользователя по его идентификатору
-     * @param id уникальный идентификатор пользователя
-     * @return найденный объект {@link User}
-     * @throws org.example.exception.UserNotFoundException если пользователь не найден
+     * Возвращает пользователя по его уникальному числовому идентификатору.
+     *
+     * @param id уникальный числовой идентификатор пользователя
+     * @return найденный объект пользователя
+     * @throws IllegalArgumentException если переданный id меньше или равен нулю
+     * @throws org.example.exception.UserNotFoundException если пользователь отсутствует в базе данных
      */
-    User getUserById(Long id);
+    User getUserById(long id);
 
     /**
-     * Извлекает список всех созданных пользователей
-     * @return список пользователей
+     * Возвращает список всех зарегистрированных пользователей системы.
+     *
+     * @return список объектов пользователей, либо пустой список, если пользователи отсутствуют
      */
     List<User> getAllUsers();
 
     /**
-     * Обновляет данные уже существующего пользователя
-     * @param id идентификатор обновляемого пользователя
-     * @param name новое имя
-     * @param email новый email
-     * @param age новый возраст
-     * @return обновлённый объект {@link User}
-     * @throws org.example.exception.UserNotFoundException если пользователь не найден
-     * @throws IllegalArgumentException если новые данные некорректны
+     * Обновляет персональные данные существующего пользователя.
+     *
+     * @param id уникальный числовой идентификатор обновляемого пользователя
+     * @param user объект с новыми персональными данными для обновления
+     * @return обновленный объект пользователя, сохраненный в базе данных
+     * @throws IllegalArgumentException если id или новые данные не прошли проверку валидности
      */
-    User updateUser(Long id, String name, String email, Integer age);
+    User updateUser(long id, User user);
 
     /**
-     * Удаляет пользователя из системы по его идентификатор
-     * @param id уникальный идентификатор пользователя
-     * @throws org.example.exception.UserNotFoundException если пользователь не найден
+     * Удаляет пользователя из системы по его идентификатору.
+     *
+     * @param id unique numerical user identifier
+     * @throws IllegalArgumentException если переданный id меньше или равен нулю
+     * @throws org.example.exception.UserNotFoundException если удаляемый пользователь отсутствует в системе
      */
-    void deleteUser(Long id);
+    void deleteUser(long id);
 }
