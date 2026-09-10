@@ -37,7 +37,7 @@ public enum ConsoleAction {
                 System.out.println("User created successfully!");
                 System.out.println(savedUser);
             } catch (Exception e) {
-                System.out.println("Execution failed: " + e.getMessage());
+                System.err.println("Execution failed: " + e.getMessage());
             }
         }
     },
@@ -53,7 +53,7 @@ public enum ConsoleAction {
                 System.out.println("User found: ");
                 System.out.println(user);
             }  catch (Exception e) {
-                System.out.println("Execution failed: " + e.getMessage());
+                System.err.println("Execution failed: " + e.getMessage());
             }
         }
     },
@@ -73,7 +73,7 @@ public enum ConsoleAction {
                     System.out.println("─".repeat(60));
                 }
             } catch (Exception e) {
-                System.out.println("Execution failed: " + e.getMessage());
+                System.err.println("Execution failed: " + e.getMessage());
             }
         }
     },
@@ -100,13 +100,13 @@ public enum ConsoleAction {
                 int newAge = InputUtils.readPositiveInt(scanner);
 
                 User updatedData = new User(newName, newEmail, newAge);
-                User updatedUser = UserServiceImpl.getINSTANCE().updateUser(id, updatedData);
+                User updatedUser = UserServiceImpl.getINSTANCE().updateUser(updatedData);
 
                 System.out.println("User updated successfully!");
                 System.out.println(updatedUser);
 
             } catch (Exception e) {
-                System.out.println("Execution failed: " + e.getMessage());
+                System.err.println("Execution failed: " + e.getMessage());
             }
         }
     },
@@ -131,7 +131,7 @@ public enum ConsoleAction {
                 }
 
             } catch (Exception e) {
-                System.out.println("Execution failed: " + e.getMessage() );
+                System.err.println("Execution failed: " + e.getMessage() );
             }
         }
     },

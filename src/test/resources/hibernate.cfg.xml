@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <!-- Настройки физического подключения к тестовой СУБД PostgreSQL, порт задается в программе -->
+        <property name="connection.driver_class">org.postgresql.Driver</property>
+        <property name="connection.url">jdbc:postgresql://localhost:${db.port}/testdb</property>
+
+        <!-- Другой вариант подключения к тестовой БД через драйвер Testcontainers -->
+        <!--<property name="connection.driver_class">org.testcontainers.jdbc.ContainerDatabaseDriver</property>
+        <property name="connection.url">jdbc:tc:postgresql:17:///testdb</property>-->
+
+        <property name="connection.username">test</property>
+        <property name="connection.password">test</property>
+        <!-- Настройка SQL диалекта для синтаксиса PostgreSQL -->
+        <property name="dialect">org.hibernate.dialect.PostgreSQLDialect</property>
+        <!-- Автоматическое создание и обновление таблиц на основе Java-классов -->
+        <property name="hbm2ddl.auto">update</property>
+        <!-- Вывод сгенерированных SQL запросов в консоль -->
+        <property name="show_sql">false</property>
+        <property name="format_sql">true</property>
+        <!-- Регистрация сущности -->
+        <mapping class="org.example.model.User"/>
+    </session-factory>
+</hibernate-configuration>
