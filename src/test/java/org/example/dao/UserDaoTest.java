@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,6 +34,71 @@ class UserDaoTest extends AbstractDaoTest {
             session.createQuery("DELETE FROM User").executeUpdate();
             tx.commit();
         }
+    }
+
+    @Test
+    @DisplayName("Save: should save user successfully when all fields are valid")
+    void save_shouldSaveUser_whenDataIsValid(){
+        User user = new User("Ivan" ,"ivan@test.com", 30);
+        User saved = userDao.save(user);
+
+        assertNotNull(saved.getId());
+        assertEquals("Ivan", saved.getName());
+        assertEquals("ivan@test.com", saved.getEmail());
+        assertEquals(30, saved.getAge());
+
+        Optional<User> fromDb = userDao.findById(saved.getId());
+        assertTrue(fromDb.isPresent());
+        assertEquals("Ivan", fromDb.get().getName());
+    }
+
+    @Test
+    @DisplayName("Save: should throw DB exception when email is duplicate ")
+    void save_shouldThrowDBException_whenEmailIsDuplicate(){
+        userDao.save(new User("Ivan", "duplicate@test.com", 30));
+        User secondUser = new User("Petr", "duplicate@test.com", 25);
+
+        assertThrows(DBException.class, ()-> userDao.save(secondUser));
+    }
+
+    @Test
+    @DisplayName("findById: should return optional with user when user exist ")
+    void findById_shouldReturnUser_whenUserExist(){
+        User saved = userDao.save(new User("Alex", "alex@test.com", 20));
+        Optional<User> found = userDao.findById(saved.getId());
+
+        assertTrue(found.isPresent());
+        assertEquals(saved.getId(), found.get().getId());
+        assertEquals("Alex", found.get().getName());
+    }
+
+    @Test
+    @DisplayName("findById: should return empty optional when user does not exist")
+    void findById_shouldReturnEmptyOptional_whenUserDoesNotExist(){
+        Optional<User> found = userDao.findById(9999L);
+        assertTrue(found.isEmpty());
+    }
+
+    @Test
+    @DisplayName("findAll: should return all users")
+    void findAll_shouldReturnAllUsers(){
+        User user1 = userDao.save(new User("User1", "user1@test.com", 30));
+        User user2 = userDao.save(new User("User2", "user2@test.com", 25));
+
+        List<User> users = userDao.findAll();
+
+        assertEquals(2, users.size());
+        assertTrue(users.stream().anyMatch(u -> u.getId().equals(user1.getId())));
+        assertTrue(users.stream().anyMatch(u -> u.getId().equals(user2.getId())));
+    }
+
+    @Test
+    @DisplayName("findAll: should return empty list when db is empty")
+    void findAll_shouldReturnEmptyList_whenDbIsEmpty(){
+        List<User> users = userDao.findAll();
+
+        assertNotNull(users);
+        assertTrue(users.isEmpty());
     }
 
     @Test
