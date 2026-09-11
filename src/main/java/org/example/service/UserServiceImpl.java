@@ -14,51 +14,53 @@ import java.util.regex.Pattern;
  * Отвечает за валидацию идентификаторов и персональных данных, обработку бизнес-исключений
  * и прямое взаимодействие со слоем доступа к данным через {@link UserDao}.
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserServiceImpl implements UserService {
+    private final UserDao userDao;
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
+    UserServiceImpl(UserDao userDao) {
+        this.userDao = userDao;
+    }
+
     @Getter
-    private static final UserServiceImpl INSTANCE = new UserServiceImpl();
+    private static final UserServiceImpl INSTANCE = new UserServiceImpl(UserDao.getInstance());
 
     @Override
     public User createUser(User user) {
         validateUserData(user);
-        return UserDao.getInstance().save(user);
+        return userDao.save(user);
     }
 
     @Override
-    public User getUserById(long id) {
+    public User getUserById(Long id) {
         validateId(id);
-        return UserDao.getInstance().findById(id)
+        return userDao.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Override
     public List<User> getAllUsers() {
-        return UserDao.getInstance().findAll();
+        return userDao.findAll();
     }
 
     @Override
     public User updateUser(User updatedData) {
         validateUserData(updatedData);
+        validateId(updatedData.getId());
 
-        return UserDao.getInstance().update(updatedData);
+        return userDao.update(updatedData);
     }
 
     @Override
-    public void deleteUser(long id) {
+    public void deleteUser(Long id) {
         validateId(id);
 
-        UserDao.getInstance().findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
-
-        UserDao.getInstance().delete(id);
+        userDao.delete(id);
     }
 
-    private void validateId(long id) {
-        if (id <= 0) {
+    private void validateId(Long id) {
+        if (id == null || id <= 0) {
             throw new IllegalArgumentException("User ID must be a positive number");
         }
     }
@@ -73,7 +75,7 @@ public class UserServiceImpl implements UserService {
         if (user.getEmail() == null || user.getEmail().isBlank() || !EMAIL_PATTERN.matcher(user.getEmail()).matches()) {
             throw new IllegalArgumentException("Invalid email format");
         }
-        if (user.getAge() < 0) {
+        if (user.getAge() == null || user.getAge() < 0) {
             throw new IllegalArgumentException("User age cannot be negative");
         }
     }
