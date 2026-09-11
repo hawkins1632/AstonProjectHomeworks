@@ -171,7 +171,7 @@ class UserDaoTest extends AbstractDaoTest {
         User ghost = new User("Ghost", "ghost@test.com", 30);
         ghost.setId(9999L);
 
-        assertThrows(DBException.class, () -> userDao.save(ghost));
+        assertThrows(DBException.class, () -> userDao.update(ghost));
     }
 
     @Test
@@ -180,9 +180,9 @@ class UserDaoTest extends AbstractDaoTest {
         userDao.save(new User("Ivan", "ivan@test.com", 25));
         User second = userDao.save(new User("Petr", "petr@test.com", 30));
 
-        second.setEmail("petr@test.com");
+        second.setEmail("ivan@test.com");
 
-        assertThrows(DBException.class, () -> userDao.save(second));
+        assertThrows(DBException.class, () -> userDao.update(second));
     }
 
     @Test
