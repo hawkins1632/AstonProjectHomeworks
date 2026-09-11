@@ -26,7 +26,7 @@ public interface UserService {
      * @throws IllegalArgumentException если переданный id меньше или равен нулю
      * @throws org.example.exception.UserNotFoundException если пользователь отсутствует в базе данных
      */
-    User getUserById(long id);
+    User getUserById(Long id);
 
     /**
      * Возвращает список всех зарегистрированных пользователей системы.
@@ -51,5 +51,5 @@ public interface UserService {
      * @throws IllegalArgumentException если переданный id меньше или равен нулю
      * @throws org.example.exception.UserNotFoundException если удаляемый пользователь отсутствует в системе
      */
-    void deleteUser(long id);
+    void deleteUser(Long id);
 }

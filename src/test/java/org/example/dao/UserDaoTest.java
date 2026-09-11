@@ -4,12 +4,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.exception.DBException;
 import org.example.exception.UserNotFoundException;
 import org.example.model.User;
+import org.example.service.UserService;
+import org.example.service.UserServiceImpl;
 import org.example.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,7 +42,7 @@ class UserDaoTest extends AbstractDaoTest {
     }
 
     @Test
-    @DisplayName("Save: should save user successfully when all fields are valid")
+    @DisplayName("save: should save user successfully when all fields are valid")
     void save_shouldSaveUser_whenDataIsValid(){
         User user = new User("Ivan" ,"ivan@test.com", 30);
         User saved = userDao.save(user);
@@ -53,7 +58,7 @@ class UserDaoTest extends AbstractDaoTest {
     }
 
     @Test
-    @DisplayName("Save: should throw DB exception when email is duplicate ")
+    @DisplayName("save: should throw DB exception when email is duplicate ")
     void save_shouldThrowDBException_whenEmailIsDuplicate(){
         userDao.save(new User("Ivan", "duplicate@test.com", 30));
         User secondUser = new User("Petr", "duplicate@test.com", 25);
@@ -102,7 +107,7 @@ class UserDaoTest extends AbstractDaoTest {
     }
 
     @Test
-    @DisplayName("Should update user successfully when all fields are valid")
+    @DisplayName("update: should update user successfully when all fields are valid")
     void update_shouldUpdateUser_whenUserExists() {
         User saved = userDao.save(new User("Ivan", "ivan@test.com", 30));
 
@@ -124,7 +129,7 @@ class UserDaoTest extends AbstractDaoTest {
     }
 
     @Test
-    @DisplayName("Should update only the name when other fields remain unchanged")
+    @DisplayName("update: should update only the name when other fields remain unchanged")
     void update_should_updateOnlyName_when_onlyNameChanged() {
         User saved = userDao.save(new User("Ivan", "ivan@test.com", 30));
 
@@ -138,7 +143,7 @@ class UserDaoTest extends AbstractDaoTest {
     }
 
     @Test
-    @DisplayName("Should update only the email when other fields remain unchanged")
+    @DisplayName("update: should update only the email when other fields remain unchanged")
     void update_should_updateOnlyEmail_when_onlyEmailChanged() {
         User saved = userDao.save(new User("Ivan", "ivan@test.com", 30));
 
@@ -152,7 +157,7 @@ class UserDaoTest extends AbstractDaoTest {
     }
 
     @Test
-    @DisplayName("Should update only the age when other fields remain unchanged")
+    @DisplayName("update: should update only the age when other fields remain unchanged")
     void update_should_updateOnlyAge_when_onlyAgeChanged() {
         User saved = userDao.save(new User("Ivan", "ivan@test.com", 30));
 
@@ -166,7 +171,7 @@ class UserDaoTest extends AbstractDaoTest {
     }
 
     @Test
-    @DisplayName("Should throw DBException when updating non-existing user")
+    @DisplayName("update: should throw DBException when existing user does not exist")
     void update_shouldThrowException_whenUserDoesNotExist() {
         User ghost = new User("Ghost", "ghost@test.com", 30);
         ghost.setId(9999L);
@@ -175,7 +180,7 @@ class UserDaoTest extends AbstractDaoTest {
     }
 
     @Test
-    @DisplayName("Should throw DBException when updating user with duplicate email")
+    @DisplayName("update: should throw DBException when email is duplicated")
     void update_shouldThrowException_whenEmailIsDuplicate() {
         userDao.save(new User("Ivan", "ivan@test.com", 25));
         User second = userDao.save(new User("Petr", "petr@test.com", 30));
@@ -186,7 +191,7 @@ class UserDaoTest extends AbstractDaoTest {
     }
 
     @Test
-    @DisplayName("Should delete user successfully when user exists")
+    @DisplayName("delete: should delete user successfully when user exists")
     void delete_shouldRemoveUser_whenUserExists() {
         User saved = userDao.save(new User("Ivan", "ivan@test.com", 30));
 
@@ -196,21 +201,21 @@ class UserDaoTest extends AbstractDaoTest {
     }
 
     @Test
-    @DisplayName("Should throw UserNotFoundException when deleting non-existing user")
+    @DisplayName("delete: should throw UserNotFoundException when user does not exist")
     void delete_shouldThrowException_whenUserDoesNotExist() {
         assertThrows(UserNotFoundException.class, () -> userDao.delete(9999L));
     }
 
-    @Test
-    @DisplayName("Should throw exception when deleting with invalid ID")
-    void delete_should_throwException_when_idIsInvalid() {
-        assertThrows(Exception.class, () -> userDao.delete(null));
-        assertThrows(Exception.class, () -> userDao.delete(-1L));
-        assertThrows(Exception.class, () -> userDao.delete(0L));
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(longs = {0L, -1L})
+    @DisplayName("delete: should throw exception when ID is invalid")
+    void delete_should_throwException_when_idIsInvalid(Long invalidId) {
+        assertThrows(Exception.class, () -> userDao.delete(invalidId));
     }
 
     @Test
-    @DisplayName("Should not affect other users when deleting one user")
+    @DisplayName("delete: should not affect other users when deleting one user")
     void delete_shouldNotAffectOtherUsers() {
         User user1 = userDao.save(new User("Ivan", "ivan@test.com", 25));
         User user2 = userDao.save(new User("Petr", "petr@test.com", 30));

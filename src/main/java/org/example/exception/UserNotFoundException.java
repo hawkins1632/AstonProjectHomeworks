@@ -5,7 +5,7 @@ package org.example.exception;
  * Наследуется от {@link RuntimeException}, что позволяет использовать его
  * как необрабатываемое исключение в методах DAO и консольного интерфейса.
  */
-public class UserNotFoundException extends RuntimeException{
+public class UserNotFoundException extends DBException{
     /**
      * Создает новое исключение с детализированным сообщением,
      * содержащим идентификатор ненайденного пользователя.
