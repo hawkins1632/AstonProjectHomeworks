@@ -1,5 +1,6 @@
 package org.example.console;
 
+import org.example.service.UserService;
 import org.example.util.InputUtils;
 
 import java.util.Scanner;
@@ -10,12 +11,13 @@ import java.util.Scanner;
  */
 public class ConsoleApp {
     private final Scanner scanner;
-
+    private final UserService userService;
     /**
      * Создаёт новый экземпляр приложения и инициализирует сканер консольного ввода.
      */
-    public ConsoleApp() {
+    public ConsoleApp(UserService userService) {
         this.scanner = new Scanner(System.in);
+        this.userService = userService;
     }
 
     /**
@@ -38,7 +40,7 @@ public class ConsoleApp {
                     } else if (action == ConsoleAction.EXIT) {
                         return;
                     }
-                    action.execute(scanner);
+                    action.execute(scanner, userService);
 
                 } catch (Exception e) {
                     System.out.println("Unexpected error: " + e.getMessage());

@@ -1,6 +1,7 @@
 package org.example;
 
 import org.example.console.ConsoleApp;
+import org.example.service.UserServiceImpl;
 import org.example.util.HibernateUtil;
 
 /**
@@ -18,7 +19,7 @@ public class Main {
      */
     public static void main(String[] args) {
         try {
-            ConsoleApp consoleManager = new ConsoleApp();
+            ConsoleApp consoleManager = new ConsoleApp(UserServiceImpl.getINSTANCE());
             consoleManager.start();
 
         } catch (Exception e) {
