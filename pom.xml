@@ -38,8 +38,6 @@
             <scope>compile</scope>
         </dependency>
 
-
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -94,6 +92,13 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>org/example/Main.class</exclude>
+                                <exclude>org/example/console/ConsoleApp.class</exclude>
+                                <exclude>org/example/util/HibernateUtil.class</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

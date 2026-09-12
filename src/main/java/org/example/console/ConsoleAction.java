@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.example.dao.UserDao;
 import org.example.model.User;
+import org.example.service.UserService;
 import org.example.service.UserServiceImpl;
 import org.example.util.InputUtils;
 
@@ -21,7 +22,7 @@ public enum ConsoleAction {
 
     CREATE(1, "Create user") {
         @Override
-        public void execute(Scanner scanner) {
+        public void execute(Scanner scanner, UserService userService) {
             System.out.print("Enter name: ");
             String name = InputUtils.readString(scanner);
 
@@ -33,7 +34,7 @@ public enum ConsoleAction {
 
             try {
                 User user = new User(name, email, age);
-                User savedUser = UserServiceImpl.getINSTANCE().createUser(user);
+                User savedUser = userService.createUser(user);
                 System.out.println("User created successfully!");
                 System.out.println(savedUser);
             } catch (Exception e) {
@@ -44,12 +45,12 @@ public enum ConsoleAction {
 
     READ(2, "Get user by ID") {
         @Override
-        public void execute(Scanner scanner) {
+        public void execute(Scanner scanner, UserService userService) {
             System.out.print("Enter user ID: ");
             long id = InputUtils.readPositiveLong(scanner);
 
             try {
-                User user = UserServiceImpl.getINSTANCE().getUserById(id);
+                User user = userService.getUserById(id);
                 System.out.println("User found: ");
                 System.out.println(user);
             }  catch (Exception e) {
@@ -60,9 +61,9 @@ public enum ConsoleAction {
 
     READ_ALL(3, "Get all users") {
         @Override
-        public void execute(Scanner scanner) {
+        public void execute(Scanner scanner, UserService userService) {
             try {
-                List<User> users = UserServiceImpl.getINSTANCE().getAllUsers();
+                List<User> users = userService.getAllUsers();
                 if (users.isEmpty()) {
                     System.out.println("No users found.");
                 } else {
@@ -80,27 +81,26 @@ public enum ConsoleAction {
 
     UPDATE(4, "Update user") {
         @Override
-        public void execute(Scanner scanner) {
+        public void execute(Scanner scanner, UserService userService) {
             System.out.print("Enter user ID: ");
             long id = InputUtils.readPositiveLong(scanner);
 
             try {
-                User user = UserServiceImpl.getINSTANCE().getUserById(id);
+                User user = userService.getUserById(id);
                 System.out.println("Current user data:");
                 System.out.println(user);
                 System.out.println("─".repeat(40));
 
                 System.out.print("Enter new name: ");
-                String newName = InputUtils.readString(scanner);
+                user.setName(InputUtils.readString(scanner));
 
                 System.out.print("Enter new email: ");
-                String newEmail = InputUtils.readString(scanner);
+                user.setEmail(InputUtils.readString(scanner));
 
                 System.out.print("Enter new age: ");
-                int newAge = InputUtils.readPositiveInt(scanner);
+                user.setAge(InputUtils.readPositiveInt(scanner));
 
-                User updatedData = new User(newName, newEmail, newAge);
-                User updatedUser = UserServiceImpl.getINSTANCE().updateUser(updatedData);
+                User updatedUser = userService.updateUser(user);
 
                 System.out.println("User updated successfully!");
                 System.out.println(updatedUser);
@@ -113,18 +113,18 @@ public enum ConsoleAction {
 
     DELETE(5, "Delete user") {
         @Override
-        public void execute(Scanner scanner) {
+        public void execute(Scanner scanner, UserService userService) {
             System.out.print("Enter user ID: ");
             long id = InputUtils.readPositiveLong(scanner);
 
             try {
-                User user = UserServiceImpl.getINSTANCE().getUserById(id);
+                User user = userService.getUserById(id);
                 System.out.println("User to delete:");
                 System.out.println(user);
 
                 System.out.print("Are you sure you want to delete this user? (y/n): ");
                 if (InputUtils.readBoolean(scanner)) {
-                    UserServiceImpl.getINSTANCE().deleteUser(id);
+                    userService.deleteUser(id);
                     System.out.println("User deleted successfully!");
                 } else {
                     System.out.println("Deletion cancelled.");
@@ -138,7 +138,7 @@ public enum ConsoleAction {
 
     EXIT(0, "Exit") {
         @Override
-        public void execute(Scanner scanner) {
+        public void execute(Scanner scanner, UserService userService) {
         }
     };
 
@@ -148,7 +148,7 @@ public enum ConsoleAction {
     /**
      * Выполняет действие
      */
-    public abstract void execute(Scanner scanner);
+    public abstract void execute(Scanner scanner, UserService userService);
 
     /**
      * Находит действие по коду

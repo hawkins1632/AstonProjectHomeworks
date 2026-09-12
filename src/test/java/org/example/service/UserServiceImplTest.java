@@ -70,6 +70,7 @@ class UserServiceImplTest {
 
     @ParameterizedTest
     @NullAndEmptySource
+    @ValueSource(strings = {"  "})
     @DisplayName("updateUser: should throw IllegalArgumentException when name is invalid")
     void updateUser_shouldThrowException_whenNameIsInvalid(String invalidName) {
         validUser.setName(invalidName);
@@ -80,7 +81,7 @@ class UserServiceImplTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = {"not-an-email", "not-an-email@test", "not-an-email@test.a", "not-an-email.ru"})
+    @ValueSource(strings = {"  ", "not-an-email", "not-an-email@test", "not-an-email@test.a", "not-an-email.ru"})
     @DisplayName("updateUser: should throw IllegalArgumentException when email is invalid")
     void updateUser_shouldThrowException_whenEmailIsInvalid(String invalidEmail) {
         validUser.setEmail(invalidEmail);
@@ -119,7 +120,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @DisplayName("createUser: should save user successfully with all fields are valid")
+    @DisplayName("createUser: should save user successfully when all fields are valid")
     void createUser_shouldSaveUser_whenDataIsValid(){
         when(userDao.save(validUser)).thenReturn(validUser);
 
@@ -139,10 +140,11 @@ class UserServiceImplTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = {"", " "})
+    @ValueSource(strings = {"  "})
     @DisplayName("createUser: should throw IllegalArgumentException when name is invalid")
-    void createUser_shouldThrowException_whenNameIsInvalid_inCreate(String invalidName){
+    void createUser_shouldThrowException_whenNameIsInvalid(String invalidName){
         validUser.setName(invalidName);
+
         assertThrows(IllegalArgumentException.class, () -> userService.createUser(validUser));
         verifyNoInteractions(userDao);
 
@@ -150,20 +152,22 @@ class UserServiceImplTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = {"not-an-email", "not-an-email@test", "not-an-email@test.a"})
+    @ValueSource(strings = {"  ", "not-an-email", "not-an-email@test", "not-an-email@test.a"})
     @DisplayName("createUser: should throw IllegalArgumentException when email is invalid")
-    void createUser_shouldThrowException_whenEmailIsInvalid_inCreate(String invalidEmail) {
+    void createUser_shouldThrowException_whenEmailIsInvalid(String invalidEmail) {
         validUser.setEmail(invalidEmail);
+
         assertThrows(IllegalArgumentException.class, () -> userService.createUser(validUser));
         verifyNoInteractions(userDao);
     }
 
     @ParameterizedTest
     @NullSource
-    @ValueSource(strings = {"-1"})
+    @ValueSource(ints = {-1})
     @DisplayName("createUser: should throw IllegalArgumentException when age is invalid")
-    void createUser_shouldThrowException_whenAgeIsInvalid_inCreate(Integer invalidAge) {
+    void createUser_shouldThrowException_whenAgeIsInvalid(Integer invalidAge) {
         validUser.setAge(invalidAge);
+
         assertThrows(IllegalArgumentException.class, () -> userService.createUser(validUser));
         verifyNoInteractions(userDao);
     }
@@ -172,25 +176,27 @@ class UserServiceImplTest {
     @DisplayName("getUserById: should return user when user exists ")
     void getUserById_shouldReturnUser_whenUserExists(){
         when(userDao.findById(1L)).thenReturn(Optional.of(validUser));
+
         User result = userService.getUserById(1L);
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
+
+        assertEquals(validUser, result);
         verify(userDao).findById(1L);
     }
 
     @Test
-    @DisplayName("getUserById: should throw UserNotFoundException when user does not exists ")
-    void getUserById_shouldThrowNotFoundException_whenUserDoesNotExist_whenUserExists(){
+    @DisplayName("getUserById: should throw UserNotFoundException when user does not exist")
+    void getUserById_shouldThrowException_whenUserDoesNotExist(){
         when(userDao.findById(999L)).thenReturn(Optional.empty());
+
         assertThrows(UserNotFoundException.class, () -> userService.getUserById(999L));
         verify(userDao).findById(999L);
     }
 
     @ParameterizedTest
     @NullSource
-    @ValueSource( strings = {"0", "-1"})
-    @DisplayName("getUserById: should throw IllegalArgumentException whe ID is invalid")
-    void getUserById_shouldThrowIllegalArgumentException_whenIdIsInvalid(Long invalidId){
+    @ValueSource(longs = {0L, -1L})
+    @DisplayName("getUserById: should throw IllegalArgumentException when ID is invalid")
+    void getUserById_shouldThrowException_whenIdIsInvalid(Long invalidId){
         assertThrows(IllegalArgumentException.class,()-> userService.getUserById(invalidId));
         verifyNoInteractions(userDao);
     }
@@ -198,11 +204,15 @@ class UserServiceImplTest {
     @Test
     @DisplayName("getAllUsers: should return list of all users")
     void getAllUsers_shouldReturnAllUsers(){
-        List<User> userList = List.of(validUser, new User("Petr", "petr@test.com",20));
+        List<User> userList = List.of(
+                validUser,
+                new User("Petr", "petr@test.com",20));
         when(userDao.findAll()).thenReturn(userList);
+
         List<User> result = userService.getAllUsers();
-        assertNotNull(result);
+
         assertEquals(2,result.size());
+        assertEquals(result, userList);
         verify(userDao).findAll();
     }
 
@@ -210,9 +220,9 @@ class UserServiceImplTest {
     @DisplayName("getAllUsers: should return empty list when no users in bd")
     void getAllUsers_shouldReturnEmptyList_whenNoUsersExist(){
         when(userDao.findAll()).thenReturn(List.of());
+
         List<User> result = userService.getAllUsers();
 
-        assertNotNull(result);
         assertTrue(result.isEmpty());
         verify(userDao).findAll();
     }
