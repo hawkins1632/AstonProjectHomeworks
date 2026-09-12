@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.dao.UserDao;
+import org.example.exception.UserNotFoundException;
 import org.example.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -113,4 +117,104 @@ class UserServiceImplTest {
 
         verifyNoInteractions(userDao);
     }
+
+    @Test
+    @DisplayName("createUser: should save user successfully with all fields are valid")
+    void createUser_shouldSaveUser_whenDataIsValid(){
+        when(userDao.save(validUser)).thenReturn(validUser);
+
+        User result = userService.createUser(validUser);
+
+        assertNotNull(result);
+        assertEquals(validUser,result);
+        verify(userDao).save(validUser);
+    }
+
+    @Test
+    @DisplayName("createUser: should throw IllegalArgumentException when user object is null")
+    void createUser_shouldThrowException_whenUserIsNull(){
+        assertThrows(IllegalArgumentException.class, () -> userService.createUser(null));
+        verifyNoInteractions(userDao);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"", " "})
+    @DisplayName("createUser: should throw IllegalArgumentException when name is invalid")
+    void createUser_shouldThrowException_whenNameIsInvalid_inCreate(String invalidName){
+        validUser.setName(invalidName);
+        assertThrows(IllegalArgumentException.class, () -> userService.createUser(validUser));
+        verifyNoInteractions(userDao);
+
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"not-an-email", "not-an-email@test", "not-an-email@test.a"})
+    @DisplayName("createUser: should throw IllegalArgumentException when email is invalid")
+    void createUser_shouldThrowException_whenEmailIsInvalid_inCreate(String invalidEmail) {
+        validUser.setEmail(invalidEmail);
+        assertThrows(IllegalArgumentException.class, () -> userService.createUser(validUser));
+        verifyNoInteractions(userDao);
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"-1"})
+    @DisplayName("createUser: should throw IllegalArgumentException when age is invalid")
+    void createUser_shouldThrowException_whenAgeIsInvalid_inCreate(Integer invalidAge) {
+        validUser.setAge(invalidAge);
+        assertThrows(IllegalArgumentException.class, () -> userService.createUser(validUser));
+        verifyNoInteractions(userDao);
+    }
+
+    @Test
+    @DisplayName("getUserById: should return user when user exists ")
+    void getUserById_shouldReturnUser_whenUserExists(){
+        when(userDao.findById(1L)).thenReturn(Optional.of(validUser));
+        User result = userService.getUserById(1L);
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        verify(userDao).findById(1L);
+    }
+
+    @Test
+    @DisplayName("getUserById: should throw UserNotFoundException when user does not exists ")
+    void getUserById_shouldThrowNotFoundException_whenUserDoesNotExist_whenUserExists(){
+        when(userDao.findById(999L)).thenReturn(Optional.empty());
+        assertThrows(UserNotFoundException.class, () -> userService.getUserById(999L));
+        verify(userDao).findById(999L);
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource( strings = {"0", "-1"})
+    @DisplayName("getUserById: should throw IllegalArgumentException whe ID is invalid")
+    void getUserById_shouldThrowIllegalArgumentException_whenIdIsInvalid(Long invalidId){
+        assertThrows(IllegalArgumentException.class,()-> userService.getUserById(invalidId));
+        verifyNoInteractions(userDao);
+    }
+
+    @Test
+    @DisplayName("getAllUsers: should return list of all users")
+    void getAllUsers_shouldReturnAllUsers(){
+        List<User> userList = List.of(validUser, new User("Petr", "petr@test.com",20));
+        when(userDao.findAll()).thenReturn(userList);
+        List<User> result = userService.getAllUsers();
+        assertNotNull(result);
+        assertEquals(2,result.size());
+        verify(userDao).findAll();
+    }
+
+    @Test
+    @DisplayName("getAllUsers: should return empty list when no users in bd")
+    void getAllUsers_shouldReturnEmptyList_whenNoUsersExist(){
+        when(userDao.findAll()).thenReturn(List.of());
+        List<User> result = userService.getAllUsers();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(userDao).findAll();
+    }
+
 }
