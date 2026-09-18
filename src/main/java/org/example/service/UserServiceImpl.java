@@ -1,5 +1,7 @@
 package org.example.service;
 
+import org.example.dto.UserRequestDto;
+import org.example.dto.UserResponseDto;
 import org.example.model.User;
 
 import java.util.List;
@@ -12,27 +14,27 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     @Override
-    public User createUser(User user) {
+    public UserResponseDto create(UserRequestDto requestDto) {
         return null;
     }
 
     @Override
-    public User getUserById(Long id) {
+    public UserResponseDto getById(Long id) {
         return null;
     }
 
     @Override
-    public List<User> getAllUsers() {
+    public List<UserResponseDto> getAll() {
         return List.of();
     }
 
     @Override
-    public User updateUser(User user) {
+    public UserResponseDto update(Long id, UserRequestDto requestDto) {
         return null;
     }
 
     @Override
-    public void deleteUser(Long id) {
+    public void delete(Long id) {
 
     }
 }
