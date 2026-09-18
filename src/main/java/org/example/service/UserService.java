@@ -1,6 +1,7 @@
 package org.example.service;
 
-import org.example.model.User;
+import org.example.dto.UserResponseDto;
+import org.example.dto.UserRequestDto;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ public interface UserService {
      * @return сохраненный объект пользователя с присвоенным уникальным идентификатором
      * @throws IllegalArgumentException если переданный объект или его поля не прошли валидацию
      */
-    User createUser(User user);
+    UserResponseDto create(UserRequestDto requestDto);
 
     /**
      * Возвращает пользователя по его уникальному числовому идентификатору.
@@ -26,14 +27,14 @@ public interface UserService {
      * @throws IllegalArgumentException если переданный id меньше или равен нулю
      * @throws org.example.exception.UserNotFoundException если пользователь отсутствует в базе данных
      */
-    User getUserById(Long id);
+   UserResponseDto getById(Long id);
 
     /**
      * Возвращает список всех зарегистрированных пользователей системы.
      *
      * @return список объектов пользователей, либо пустой список, если пользователи отсутствуют
      */
-    List<User> getAllUsers();
+    List<UserResponseDto> getAll();
 
     /**
      * Обновляет персональные данные существующего пользователя.
@@ -42,7 +43,7 @@ public interface UserService {
      * @return обновленный объект пользователя, сохраненный в базе данных
      * @throws IllegalArgumentException если id или новые данные не прошли проверку валидности
      */
-    User updateUser(User user);
+    UserResponseDto update(Long id, UserRequestDto requestDto);
 
     /**
      * Удаляет пользователя из системы по его идентификатору.
@@ -51,5 +52,5 @@ public interface UserService {
      * @throws IllegalArgumentException если переданный id меньше или равен нулю
      * @throws org.example.exception.UserNotFoundException если удаляемый пользователь отсутствует в системе
      */
-    void deleteUser(Long id);
+    void delete(Long id);
 }
