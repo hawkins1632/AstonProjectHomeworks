@@ -4,6 +4,7 @@ package org.example.exception;
  * с базой данных PostgreSQL или при сбоях в работе фреймворка Hibernate.
  * Служит оберткой для низкоуровневых исключений persistence-слоя.
  */
+// ToDo - Использовать данную ошибку в UserServiceImpl или нет?
 public class DBException extends RuntimeException{
     /**
      * Создает новое исключение базы данных с детализированным текстовым сообщением.
