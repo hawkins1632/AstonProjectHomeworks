@@ -24,7 +24,7 @@ jobs:
           cache: 'maven'
 
       - name: Run tests and generate coverage report
-        run: mvn clean test jacoco:report
+        run: mvn clean test
 
       - name: Add coverage comment to PR
         uses: madrapps/jacoco-report@v1.8.0

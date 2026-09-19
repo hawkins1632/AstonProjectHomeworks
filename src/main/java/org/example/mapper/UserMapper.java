@@ -7,6 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 
 import java.util.List;
+
 /**
  * Маппер для преобразования между сущностью {@link User} и DTO.
  */
@@ -19,6 +20,7 @@ public interface UserMapper {
      * @return DTO пользователя
      */
     UserResponseDto toResponse(User user);
+
     /**
      * Преобразует список сущностей пользователей в список DTO.
      *
@@ -26,13 +28,15 @@ public interface UserMapper {
      * @return список DTO пользователей
      */
     List<UserResponseDto> toResponseList(List<User> userList);
+
     /**
      * Обновляет существующую сущность пользователя данными из запроса.
      *
-     * @param user сущность, которую нужно обновить
+     * @param user    сущность, которую нужно обновить
      * @param request DTO с новыми данными
      */
     void updateEntity(@MappingTarget User user, UserRequestDto request);
+
     /**
      * Преобразует DTO запроса в сущность пользователя.
      *

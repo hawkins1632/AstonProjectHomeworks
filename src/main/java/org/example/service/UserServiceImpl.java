@@ -23,6 +23,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+
     /**
      * Создаёт нового пользователя.
      *
@@ -34,6 +35,7 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto create(UserRequestDto requestDto) {
         return userMapper.toResponse(userRepository.save(userMapper.toEntity(requestDto)));
     }
+
     /**
      * Возвращает пользователя по идентификатору.
      *
@@ -46,6 +48,7 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto getById(Long id) {
         return userMapper.toResponse(userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
     }
+
     /**
      * Возвращает список всех пользователей.
      *
@@ -56,10 +59,11 @@ public class UserServiceImpl implements UserService {
     public List<UserResponseDto> getAll() {
         return userMapper.toResponseList(userRepository.findAll());
     }
+
     /**
      * Обновляет данные существующего пользователя.
      *
-     * @param id идентификатор пользователя
+     * @param id         идентификатор пользователя
      * @param requestDto новые данные
      * @return обновлённый пользователь
      * @throws UserNotFoundException если пользователь не найден
@@ -71,6 +75,7 @@ public class UserServiceImpl implements UserService {
         userMapper.updateEntity(user, requestDto);
         return userMapper.toResponse(userRepository.save(user));
     }
+
     /**
      * Удаляет пользователя по идентификатору.
      *

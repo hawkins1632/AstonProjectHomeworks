@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+
 /**
  * Глобальный обработчик исключений REST-контроллеров.
  * <p>
@@ -37,6 +38,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(body);
     }
+
     /**
      * Обрабатывает исключения {@link IllegalArgumentException}.
      *
@@ -44,7 +46,7 @@ public class GlobalExceptionHandler {
      * @return HTTP 400 Bad Request с сообщением об ошибке
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex){
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.BAD_REQUEST.value());
@@ -52,6 +54,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(body);
     }
+
     /**
      * Обрабатывает исключение {@link UserNotFoundException}.
      *
@@ -67,6 +70,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
+
     /**
      * Обрабатывает ошибки валидации constraint violation (например, для @PathVariable).
      *

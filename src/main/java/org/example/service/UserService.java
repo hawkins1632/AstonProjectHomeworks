@@ -1,7 +1,8 @@
 package org.example.service;
 
-import org.example.dto.UserResponseDto;
 import org.example.dto.UserRequestDto;
+import org.example.dto.UserResponseDto;
+
 import java.util.List;
 
 /**
@@ -25,7 +26,7 @@ public interface UserService {
      * @return найденный пользователь
      * @throws org.example.exception.UserNotFoundException если пользователь отсутствует в базе данных
      */
-   UserResponseDto getById(Long id);
+    UserResponseDto getById(Long id);
 
     /**
      * Возвращает список всех зарегистрированных пользователей системы.
@@ -37,7 +38,7 @@ public interface UserService {
     /**
      * Обновляет персональные данные существующего пользователя.
      *
-     * @param id уникальный идентификатор пользователя
+     * @param id         уникальный идентификатор пользователя
      * @param requestDto объект с новыми данными пользователя
      * @return обновлённый пользователь, сохранённый в базе данных
      * @throws org.example.exception.UserNotFoundException если пользователь с указанным id не найден
