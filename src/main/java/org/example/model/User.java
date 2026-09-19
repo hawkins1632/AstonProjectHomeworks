@@ -20,19 +20,34 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 public class User {
 
+    /**
+     * Уникальный идентификатор пользователя.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Имя пользователя.
+     */
     @Column(nullable = false, length = 100)
     private String name;
 
+    /**
+     * Электронная почта пользователя.
+     */
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
+    /**
+     * Возраст пользователя.
+     */
     @Column(nullable = false)
     private Integer age;
 
+    /**
+     * Дата создания записи в БД.
+     */
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

@@ -2,9 +2,7 @@ package org.example.exception;
 
 /**
  * Исключение, выбрасываемое в случае, если запрашиваемый пользователь
- * не был найден в базе данных PostgreSQL.
- * Наследуется от {@link RuntimeException}, что позволяет использовать его
- * как необрабатываемое исключение в методах DAO и консольного интерфейса.
+ * не был найден в базе данных.
  */
 public class UserNotFoundException extends RuntimeException {
     /**
