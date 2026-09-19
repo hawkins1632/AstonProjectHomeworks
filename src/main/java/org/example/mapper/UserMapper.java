@@ -1,14 +1,14 @@
 package org.example.mapper;
+
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
 import org.example.model.User;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface UserMapper {
 
     UserResponseDto toResponse(User user);
