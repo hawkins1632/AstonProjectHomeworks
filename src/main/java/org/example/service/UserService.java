@@ -11,11 +11,10 @@ import java.util.List;
 public interface UserService {
 
     /**
-     * Создает нового пользователя в системе после предварительной валидации его данных.
+     * Создаёт нового пользователя в системе после предварительной валидации его данных.
      *
-     * @param user объект пользователя, содержащий данные для регистрации
-     * @return сохраненный объект пользователя с присвоенным уникальным идентификатором
-     * @throws IllegalArgumentException если переданный объект или его поля не прошли валидацию
+     * @param requestDto объект с данными пользователя для создания
+     * @return сохранённый пользователь с присвоенным уникальным идентификатором
      */
     UserResponseDto create(UserRequestDto requestDto);
 
@@ -23,8 +22,7 @@ public interface UserService {
      * Возвращает пользователя по его уникальному числовому идентификатору.
      *
      * @param id уникальный числовой идентификатор пользователя
-     * @return найденный объект пользователя
-     * @throws IllegalArgumentException если переданный id меньше или равен нулю
+     * @return найденный пользователь
      * @throws org.example.exception.UserNotFoundException если пользователь отсутствует в базе данных
      */
    UserResponseDto getById(Long id);
@@ -32,24 +30,24 @@ public interface UserService {
     /**
      * Возвращает список всех зарегистрированных пользователей системы.
      *
-     * @return список объектов пользователей, либо пустой список, если пользователи отсутствуют
+     * @return список пользователей либо пустой список, если пользователи отсутствуют
      */
     List<UserResponseDto> getAll();
 
     /**
      * Обновляет персональные данные существующего пользователя.
      *
-     * @param user объект с новыми персональными данными для обновления
-     * @return обновленный объект пользователя, сохраненный в базе данных
-     * @throws IllegalArgumentException если id или новые данные не прошли проверку валидности
+     * @param id уникальный идентификатор пользователя
+     * @param requestDto объект с новыми данными пользователя
+     * @return обновлённый пользователь, сохранённый в базе данных
+     * @throws org.example.exception.UserNotFoundException если пользователь с указанным id не найден
      */
     UserResponseDto update(Long id, UserRequestDto requestDto);
 
     /**
      * Удаляет пользователя из системы по его идентификатору.
      *
-     * @param id unique numerical user identifier
-     * @throws IllegalArgumentException если переданный id меньше или равен нулю
+     * @param id уникальный идентификатор пользователя
      * @throws org.example.exception.UserNotFoundException если удаляемый пользователь отсутствует в системе
      */
     void delete(Long id);
