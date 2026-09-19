@@ -20,6 +20,7 @@ REST-сервис для управления пользователями (CRUD
 # Основной эндпоинт: `/api/users`
 
 ## Структура проекта
+```
 src/main/java/org/example/
 ├── controller/ # REST-контроллер 
 ├── dto/ # Request/Response DTO 
@@ -29,6 +30,7 @@ src/main/java/org/example/
 ├── repository/ # Spring Data JPA репозиторий 
 ├── service/ # Бизнес-логика и интерфейс 
 └── UserServiceApplication.java
+```
 
 ## Тестирование
 Проект покрыт юнит-тестами и интеграционными тестами:
