@@ -22,7 +22,6 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-boot.version>4.1.1</spring-boot.version>
         <testcontainers.version>2.0.5</testcontainers.version>
         <jacoco.version>0.8.15</jacoco.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
@@ -132,8 +131,9 @@
                         </goals>
                         <configuration>
                             <excludes>
-                                <exclude>org/example/Main.class</exclude>
+                                <exclude>org/example/UserServiceApplication.class</exclude>
                                 <exclude>org/example/dto/**</exclude>
+                                <exclude>org/example/mapper/**</exclude>
                             </excludes>
                         </configuration>
                     </execution>
