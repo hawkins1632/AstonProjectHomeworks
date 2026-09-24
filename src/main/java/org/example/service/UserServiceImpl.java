@@ -1,8 +1,5 @@
 package org.example.service;
 
-import event.EventType;
-import event.UserEvent;
-import org.example.kafka.UserEventProducer;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
@@ -24,10 +21,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserEventProducer userEventProducer;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-
 
     /**
      * Создаёт нового пользователя.
@@ -38,23 +33,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto create(UserRequestDto requestDto) {
-
-
-
-        User user = userRepository.save(
-
-                userMapper.toEntity(requestDto)
-
-        );
-
-        userEventProducer.send(
-                new UserEvent(
-                        EventType.USER_CREATED, user.getEmail()
-                )
-        );
-
-        return userMapper.toResponse(user);
-
+        return userMapper.toResponse(userRepository.save(userMapper.toEntity(requestDto)));
     }
 
     /**
@@ -102,26 +81,13 @@ public class UserServiceImpl implements UserService {
      *
      * @param id идентификатор пользователя
      * @throws UserNotFoundException если пользователь не найден
-     * сначала пользователь находится по id,
-     * затем удаляется из базы данных,
-     * после чего в Kafka отправляется событие USER_DELETED,
-     * содержащее его email
      */
     @Override
     @Transactional
     public void delete(Long id) {
-
-        User user = userRepository.findById(id)
-                .orElseThrow(
-                        () -> new UserNotFoundException(id)
-                );
-
+        if (!userRepository.existsUserById(id)) {
+            throw new UserNotFoundException(id);
+        }
         userRepository.deleteById(id);
-
-        userEventProducer.send(
-                new UserEvent( EventType.USER_DELETED, user.getEmail()
-                )
-        );
-
     }
 }
