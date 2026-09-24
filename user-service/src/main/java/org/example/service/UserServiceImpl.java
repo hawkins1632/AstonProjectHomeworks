@@ -1,8 +1,6 @@
 package org.example.service;
 
-import event.EventType;
-import event.UserEvent;
-import org.example.kafka.UserEventProducer;
+
 import lombok.RequiredArgsConstructor;
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
@@ -24,7 +22,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserEventProducer userEventProducer;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
@@ -45,12 +42,6 @@ public class UserServiceImpl implements UserService {
 
                 userMapper.toEntity(requestDto)
 
-        );
-
-        userEventProducer.send(
-                new UserEvent(
-                        EventType.USER_CREATED, user.getEmail()
-                )
         );
 
         return userMapper.toResponse(user);
@@ -111,17 +102,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void delete(Long id) {
 
-        User user = userRepository.findById(id)
-                .orElseThrow(
-                        () -> new UserNotFoundException(id)
-                );
+        if (!userRepository.existsUserById(id)) {
+            throw new UserNotFoundException(id);
+        }
 
         userRepository.deleteById(id);
-
-        userEventProducer.send(
-                new UserEvent( EventType.USER_DELETED, user.getEmail()
-                )
-        );
 
     }
 }

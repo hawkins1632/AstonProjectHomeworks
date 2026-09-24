@@ -8,7 +8,7 @@
 
     <parent>
         <groupId>org.example</groupId>
-        <artifactId>aston-project-homeworks</artifactId>
+        <artifactId>team-user-service</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
