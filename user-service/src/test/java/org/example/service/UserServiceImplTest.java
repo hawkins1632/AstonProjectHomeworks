@@ -3,6 +3,7 @@ package org.example.service;
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
 import org.example.exception.UserNotFoundException;
+import org.example.kafka.UserEventProducer;
 import org.example.mapper.UserMapper;
 import org.example.model.User;
 import org.example.repository.UserRepository;
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -32,6 +34,9 @@ class UserServiceImplTest {
 
     @Mock
     private UserMapper userMapper;
+
+    @Mock
+    private UserEventProducer userEventProducer;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -164,22 +169,23 @@ class UserServiceImplTest {
     @Test
     @DisplayName("delete: deletes user when user exists")
     void delete_shouldDeleteUser_whenUserExists() {
-        when(userRepository.existsUserById(1L)).thenReturn(true);
+        User user = new User();
+        user.setId(1L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         userService.delete(1L);
 
-        verify(userRepository).existsUserById(1L);
-        verify(userRepository).deleteById(1L);
+        verify(userRepository).delete(user);
     }
 
     @Test
     @DisplayName("delete: throws UserNotFoundException when user does not exist")
     void delete_shouldThrowException_whenUserDoesNotExist() {
-        when(userRepository.existsUserById(99L)).thenReturn(false);
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.delete(99L))
-                .isInstanceOf(UserNotFoundException.class);
-        verify(userRepository).existsUserById(99L);
-        verify(userRepository, never()).deleteById(anyLong());
+        assertThrows(UserNotFoundException.class, () -> userService.delete(99L));
+
+        verify(userRepository, never()).delete(any());
     }
 }
