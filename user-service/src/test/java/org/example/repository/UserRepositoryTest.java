@@ -1,7 +1,6 @@
-package repository;
+package org.example.repository;
 
 import org.example.model.User;
-import org.example.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -24,7 +23,7 @@ class UserRepositoryTest {
 
     @Container
     static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17")
-            .withDatabaseName("testdb")
+            .withDatabaseName("test_db")
             .withUsername("test")
             .withPassword("test");
 
@@ -101,9 +100,18 @@ class UserRepositoryTest {
 
     @Test
     void save_shouldThrowException_whenEmailAlreadyExists() {
-        userRepository.save(new User("Alice", "alice@mail.com", 30));
 
-        assertThrows(Exception.class, () ->
-                userRepository.save(new User("Bob", "alice@mail.com", 25)));
+        userRepository.save(
+                new User("Alice", "alice@mail.com", 30)
+        );
+
+        userRepository.flush();
+
+        assertThrows(Exception.class, () -> {
+            userRepository.save(
+                    new User("Bob", "alice@mail.com", 25)
+            );
+            userRepository.flush();
+        });
     }
 }
