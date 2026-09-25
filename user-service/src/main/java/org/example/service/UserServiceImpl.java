@@ -1,7 +1,7 @@
 package org.example.service;
 
-import event.UserEvent;
 import event.EventType;
+import event.UserEvent;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Реализация интерфейса {@link UserService} для управления бизнес-логикой пользователей.
  * Отвечает за валидацию идентификаторов и персональных данных, обработку бизнес-исключений
- * и прямое взаимодействие со слоем доступа к данным через.
+ * и взаимодействие со слоем доступа к данным.
  */
 @Service
 @RequiredArgsConstructor
@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Создаёт нового пользователя.
-     * После успешного сохранения отправляется в Kafka.
+     * После успешного сохранения отправляется событие в Kafka.
      *
      * @param requestDto данные пользователя
      * @return созданный пользователь
@@ -38,13 +38,15 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto create(UserRequestDto requestDto) {
+
         User user = userRepository.save(
                 userMapper.toEntity(requestDto)
         );
 
         userEventProducer.send(
                 new UserEvent(
-                        EventType.USER_CREATED, user.getEmail()
+                        EventType.USER_CREATED,
+                        user.getEmail()
                 )
         );
 
@@ -61,7 +63,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponseDto getById(Long id) {
-        return userMapper.toResponse(userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
+        return userMapper.toResponse(
+                userRepository.findById(id)
+                        .orElseThrow(() -> new UserNotFoundException(id))
+        );
     }
 
     /**
@@ -72,7 +77,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDto> getAll() {
-        return userMapper.toResponseList(userRepository.findAll());
+        return userMapper.toResponseList(
+                userRepository.findAll()
+        );
     }
 
     /**
@@ -86,14 +93,22 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto update(Long id, UserRequestDto requestDto) {
-        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+
         userMapper.updateEntity(user, requestDto);
-        return userMapper.toResponse(userRepository.save(user));
+
+        return userMapper.toResponse(
+                userRepository.save(user)
+        );
     }
 
     /**
-     * Здесь сначала получаем User, чтобы сохранить его email для события.
      * Удаляет пользователя по идентификатору.
+     * Сначала пользователь находится по id, чтобы получить его email.
+     * Затем пользователь удаляется из базы данных,
+     * после чего в Kafka отправляется событие USER_DELETED.
      *
      * @param id идентификатор пользователя
      * @throws UserNotFoundException если пользователь не найден
@@ -108,12 +123,12 @@ public class UserServiceImpl implements UserService {
                 );
 
         userRepository.deleteById(id);
+
         userEventProducer.send(
                 new UserEvent(
                         EventType.USER_DELETED,
                         user.getEmail()
                 )
         );
-
     }
 }
