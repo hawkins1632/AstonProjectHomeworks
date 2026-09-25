@@ -6,6 +6,7 @@ spring:
     name: team-user-service
 
   datasource:
+    #Порт-5433, чтобы приложение подключалось к бд в докере, если надо к реальной бд, то порт надо поменять
     url: ${DB_URL:jdbc:postgresql://localhost:5433/postgres}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:admin}
