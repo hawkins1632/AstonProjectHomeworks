@@ -1,5 +1,6 @@
 package org.example.service;
 
+
 import lombok.RequiredArgsConstructor;
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
@@ -24,6 +25,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+
     /**
      * Создаёт нового пользователя.
      *
@@ -33,7 +35,17 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto create(UserRequestDto requestDto) {
-        return userMapper.toResponse(userRepository.save(userMapper.toEntity(requestDto)));
+
+
+
+        User user = userRepository.save(
+
+                userMapper.toEntity(requestDto)
+
+        );
+
+        return userMapper.toResponse(user);
+
     }
 
     /**
@@ -81,13 +93,20 @@ public class UserServiceImpl implements UserService {
      *
      * @param id идентификатор пользователя
      * @throws UserNotFoundException если пользователь не найден
+     * сначала пользователь находится по id,
+     * затем удаляется из базы данных,
+     * после чего в Kafka отправляется событие USER_DELETED,
+     * содержащее его email
      */
     @Override
     @Transactional
     public void delete(Long id) {
+
         if (!userRepository.existsUserById(id)) {
             throw new UserNotFoundException(id);
         }
+
         userRepository.deleteById(id);
+
     }
 }
