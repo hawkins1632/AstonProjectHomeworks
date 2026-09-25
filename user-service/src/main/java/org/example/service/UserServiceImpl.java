@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
 import org.example.exception.UserNotFoundException;
+import org.example.kafka.UserEventProducer;
 import org.example.mapper.UserMapper;
 import org.example.model.User;
 import org.example.repository.UserRepository;
@@ -24,6 +25,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final UserEventProducer userEventProducer;
 
 
     /**
@@ -36,13 +38,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDto create(UserRequestDto requestDto) {
 
-
-
         User user = userRepository.save(
-
                 userMapper.toEntity(requestDto)
-
         );
+        userEventProducer.sendCreated(user);
 
         return userMapper.toResponse(user);
 
@@ -85,7 +84,9 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto update(Long id, UserRequestDto requestDto) {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         userMapper.updateEntity(user, requestDto);
-        return userMapper.toResponse(userRepository.save(user));
+        userRepository.save(user);
+        userEventProducer.sendUpdated(user);
+        return userMapper.toResponse(user);
     }
 
     /**
@@ -101,12 +102,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void delete(Long id) {
-
-        if (!userRepository.existsUserById(id)) {
-            throw new UserNotFoundException(id);
-        }
-
-        userRepository.deleteById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        userRepository.delete(user);
+        userEventProducer.sendDeleted(user);
 
     }
 }
