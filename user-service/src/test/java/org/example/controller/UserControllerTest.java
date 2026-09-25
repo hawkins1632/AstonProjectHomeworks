@@ -1,7 +1,6 @@
 package org.example.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.controller.UserController;
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
 import org.example.exception.UserNotFoundException;
