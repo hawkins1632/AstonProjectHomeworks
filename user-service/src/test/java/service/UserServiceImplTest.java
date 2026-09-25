@@ -1,4 +1,4 @@
-package org.example.service;
+package service;
 
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
@@ -6,6 +6,7 @@ import org.example.exception.UserNotFoundException;
 import org.example.mapper.UserMapper;
 import org.example.model.User;
 import org.example.repository.UserRepository;
+import org.example.service.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

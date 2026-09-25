@@ -1,9 +1,12 @@
 package org.example.service;
 
+import event.UserEvent;
+import event.EventType;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
 import org.example.exception.UserNotFoundException;
+import org.example.kafka.UserEventProducer;
 import org.example.mapper.UserMapper;
 import org.example.model.User;
 import org.example.repository.UserRepository;
@@ -23,9 +26,11 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final UserEventProducer userEventProducer;
 
     /**
      * Создаёт нового пользователя.
+     * После успешного сохранения отправляется в Kafka.
      *
      * @param requestDto данные пользователя
      * @return созданный пользователь
@@ -33,7 +38,17 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto create(UserRequestDto requestDto) {
-        return userMapper.toResponse(userRepository.save(userMapper.toEntity(requestDto)));
+        User user = userRepository.save(
+                userMapper.toEntity(requestDto)
+        );
+
+        userEventProducer.send(
+                new UserEvent(
+                        EventType.USER_CREATED, user.getEmail()
+                )
+        );
+
+        return userMapper.toResponse(user);
     }
 
     /**
@@ -77,6 +92,7 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * Здесь сначала получаем User, чтобы сохранить его email для события.
      * Удаляет пользователя по идентификатору.
      *
      * @param id идентификатор пользователя
@@ -85,9 +101,19 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!userRepository.existsUserById(id)) {
-            throw new UserNotFoundException(id);
-        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(
+                        () -> new UserNotFoundException(id)
+                );
+
         userRepository.deleteById(id);
+        userEventProducer.send(
+                new UserEvent(
+                        EventType.USER_DELETED,
+                        user.getEmail()
+                )
+        );
+
     }
 }
