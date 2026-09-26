@@ -6,8 +6,7 @@ spring:
     name: user-service
 
   datasource:
-    #Порт-5433, чтобы приложение подключалось к бд в докере, если надо к реальной бд, то порт надо поменять
-    url: ${DB_URL:jdbc:postgresql://localhost:5433/postgres}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:admin}
     driver-class-name: org.postgresql.Driver
@@ -22,25 +21,23 @@ spring:
         format_sql: true
         jdbc:
           time_zone: UTC
+
     defer-datasource-initialization: false
 
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      acks: all
-      properties:
-        spring.json.add.type.headers: false
-        retries: 3
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
 
 logging:
   level:
     root: WARN
+    org.example: WARN
     org.hibernate: WARN
     org.hibernate.SQL: WARN
     com.zaxxer.hikari: WARN
-    org.example: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
