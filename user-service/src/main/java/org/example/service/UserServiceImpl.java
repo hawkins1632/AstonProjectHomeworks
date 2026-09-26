@@ -30,6 +30,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Создаёт нового пользователя.
+     * После успешного сохранения отправляется событие в Kafka.
      *
      * @param requestDto данные пользователя
      * @return созданный пользователь
@@ -38,7 +39,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDto create(UserRequestDto requestDto) {
 
+
+
         User user = userRepository.save(
+
                 userMapper.toEntity(requestDto)
         );
         userEventProducer.sendCreated(user);
@@ -91,13 +95,12 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Удаляет пользователя по идентификатору.
+     * Сначала пользователь находится по id, чтобы получить его email.
+     * Затем пользователь удаляется из базы данных,
+     * после чего в Kafka отправляется событие USER_DELETED.
      *
      * @param id идентификатор пользователя
      * @throws UserNotFoundException если пользователь не найден
-     * сначала пользователь находится по id,
-     * затем удаляется из базы данных,
-     * после чего в Kafka отправляется событие USER_DELETED,
-     * содержащее его email
      */
     @Override
     @Transactional
