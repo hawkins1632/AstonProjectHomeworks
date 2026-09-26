@@ -1,7 +1,6 @@
 package org.example.service;
 
-import event.EventType;
-import event.UserEvent;
+
 import lombok.RequiredArgsConstructor;
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
@@ -18,7 +17,7 @@ import java.util.List;
 /**
  * Реализация интерфейса {@link UserService} для управления бизнес-логикой пользователей.
  * Отвечает за валидацию идентификаторов и персональных данных, обработку бизнес-исключений
- * и взаимодействие со слоем доступа к данным.
+ * и прямое взаимодействие со слоем доступа к данным через.
  */
 @Service
 @RequiredArgsConstructor
@@ -27,6 +26,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final UserEventProducer userEventProducer;
+
 
     /**
      * Создаёт нового пользователя.
@@ -39,18 +39,16 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDto create(UserRequestDto requestDto) {
 
+
+
         User user = userRepository.save(
+
                 userMapper.toEntity(requestDto)
         );
-
-        userEventProducer.send(
-                new UserEvent(
-                        EventType.USER_CREATED,
-                        user.getEmail()
-                )
-        );
+        userEventProducer.sendCreated(user);
 
         return userMapper.toResponse(user);
+
     }
 
     /**
@@ -63,10 +61,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponseDto getById(Long id) {
-        return userMapper.toResponse(
-                userRepository.findById(id)
-                        .orElseThrow(() -> new UserNotFoundException(id))
-        );
+        return userMapper.toResponse(userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
     }
 
     /**
@@ -77,9 +72,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDto> getAll() {
-        return userMapper.toResponseList(
-                userRepository.findAll()
-        );
+        return userMapper.toResponseList(userRepository.findAll());
     }
 
     /**
@@ -93,15 +86,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto update(Long id, UserRequestDto requestDto) {
-
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
-
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         userMapper.updateEntity(user, requestDto);
-
-        return userMapper.toResponse(
-                userRepository.save(user)
-        );
+        userRepository.save(user);
+        userEventProducer.sendUpdated(user);
+        return userMapper.toResponse(user);
     }
 
     /**
@@ -116,19 +105,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void delete(Long id) {
-
         User user = userRepository.findById(id)
-                .orElseThrow(
-                        () -> new UserNotFoundException(id)
-                );
+                .orElseThrow(() -> new UserNotFoundException(id));
+        userRepository.delete(user);
+        userEventProducer.sendDeleted(user);
 
-        userRepository.deleteById(id);
-
-        userEventProducer.send(
-                new UserEvent(
-                        EventType.USER_DELETED,
-                        user.getEmail()
-                )
-        );
     }
 }

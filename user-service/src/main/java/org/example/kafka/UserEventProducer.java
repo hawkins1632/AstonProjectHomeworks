@@ -1,41 +1,43 @@
 package org.example.kafka;
 
-import event.UserEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.example.dto.UserEvent;
+import org.example.model.User;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class UserEventProducer {
 
+    public static final String TOPIC = "user-events";
+
     private final KafkaTemplate<String, UserEvent> kafkaTemplate;
 
-    @Value("${app.kafka.topic}")
-    private String topic;
+    public void sendCreated(User user) {
+        send(UserEvent.created(user));
+    }
 
-    public void send(UserEvent event) {
+    public void sendDeleted(User user) {
+        send(UserEvent.deleted(user));
+    }
+    public void sendUpdated(User user) {
+        send(UserEvent.updated(user));
+    }
 
-        kafkaTemplate.send(topic, event.getEmail(), event)
-                .whenComplete((result, ex) -> {
-                    if (ex == null) {
-                        log.info(
-                                "Kafka event sent: event={}, email={}, topic={}",
-                                event.getEvent(),
-                                event.getEmail(),
-                                topic
-                        );
-                    } else {
-                        log.error(
-                                "Failed to send Kafka event: event={}, email={}",
-                                event.getEvent(),
-                                event.getEmail(),
-                                ex
-                        );
-                    }
-                });
+    private void send(UserEvent event) {
+        try {
+            // .get() делаем синхронную отправку: если Kafka недоступна,
+            // метод бросит исключение, и транзакция БД сможет откатиться.
+            kafkaTemplate.send(TOPIC, event.email(), event)
+                    .get(5, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send user event to Kafka", e);
+        }
     }
 }
