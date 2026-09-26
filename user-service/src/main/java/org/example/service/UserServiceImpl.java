@@ -42,16 +42,10 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto create(UserRequestDto requestDto) {
         log.info("Создание пользователя: email = {}", requestDto.getEmail());
 
-        User user = userRepository.save(
-                userMapper.toEntity(requestDto)
-        );
+        User user = userRepository.save(userMapper.toEntity(requestDto));
         userEventProducer.sendCreated(user);
 
-        log.info(
-                "Пользователь успешно создан: id={}, email={}",
-                user.getId(),
-                user.getEmail()
-        );
+        log.info("Пользователь успешно создан: id={}, email={}", user.getId(), user.getEmail());
         return userMapper.toResponse(user);
     }
 
@@ -68,16 +62,11 @@ public class UserServiceImpl implements UserService {
         log.info("Поиск пользователя с id={}", id);
 
         User user = userRepository.findById(id).orElseThrow(() -> {
-                    log.warn("Пользователь не найден: id={}", id);
-                    return new UserNotFoundException(id);
-                });
+            log.warn("Пользователь не найден: id={}", id);
+            return new UserNotFoundException(id);
+        });
 
-        log.info(
-                "Пользователь найден: id={}, email={}",
-                user.getId(),
-                user.getEmail()
-        );
-
+        log.info("Пользователь найден: id={}, email={}", user.getId(), user.getEmail());
         return userMapper.toResponse(user);
     }
 
@@ -94,7 +83,6 @@ public class UserServiceImpl implements UserService {
         List<User> users = userRepository.findAll();
 
         log.info("Пользователи найдены: количество={}", users.size());
-
         return userMapper.toResponseList(users);
     }
 
@@ -111,22 +99,16 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto update(Long id, UserRequestDto requestDto) {
         log.info("Обновление пользователя: id={}", id);
 
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Невозможно обновить пользователя, пользователь не найден: id={}", id);
-                    return new UserNotFoundException(id);
-                });
+        User user = userRepository.findById(id).orElseThrow(() -> {
+            log.warn("Невозможно обновить пользователя, пользователь не найден: id={}", id);
+            return new UserNotFoundException(id);
+        });
 
         userMapper.updateEntity(user, requestDto);
         User updatedUser = userRepository.save(user);
-
-        log.info(
-                "Пользователь успешно обновлен: id={}, email={}",
-                updatedUser.getId(),
-                updatedUser.getEmail()
-        );
         userEventProducer.sendUpdated(user);
 
+        log.info("Пользователь успешно обновлен: id={}, email={}", updatedUser.getId(), updatedUser.getEmail());
         return userMapper.toResponse(updatedUser);
     }
 
@@ -144,18 +126,14 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         log.info("Удаление пользователя: id={}", id);
 
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Невозможно удалить пользователя, пользователь не найден: id={}", id);
-                    return new UserNotFoundException(id);
-                });
+        User user = userRepository.findById(id).orElseThrow(() -> {
+            log.warn("Невозможно удалить пользователя, пользователь не найден: id={}", id);
+            return new UserNotFoundException(id);
+        });
 
         userRepository.delete(user);
         userEventProducer.sendDeleted(user);
-        log.info(
-                "Пользователь успешно удален: id={}, email={}",
-                user.getId(),
-                user.getEmail()
-        );
+
+        log.info("Пользователь успешно удален: id={}, email={}", user.getId(), user.getEmail());
     }
 }
