@@ -1,7 +1,6 @@
 package org.example.service;
 
-import event.EventType;
-import event.UserEvent;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.dto.UserRequestDto;
@@ -30,6 +29,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserEventProducer userEventProducer;
 
+
     /**
      * Создаёт нового пользователя.
      * После успешного сохранения отправляется событие в Kafka.
@@ -40,26 +40,18 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto create(UserRequestDto requestDto) {
-
         log.info("Создание пользователя: email = {}", requestDto.getEmail());
 
         User user = userRepository.save(
                 userMapper.toEntity(requestDto)
         );
-
-        userEventProducer.send(
-                new UserEvent(
-                        EventType.USER_CREATED,
-                        user.getEmail()
-                )
-        );
+        userEventProducer.sendCreated(user);
 
         log.info(
                 "Пользователь успешно создан: id={}, email={}",
                 user.getId(),
                 user.getEmail()
         );
-
         return userMapper.toResponse(user);
     }
 
@@ -73,11 +65,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponseDto getById(Long id) {
-
         log.info("Поиск пользователя с id={}", id);
 
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> {
+        User user = userRepository.findById(id).orElseThrow(() -> {
                     log.warn("Пользователь не найден: id={}", id);
                     return new UserNotFoundException(id);
                 });
@@ -99,7 +89,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDto> getAll() {
-
         log.info("Получение всех пользователей");
 
         List<User> users = userRepository.findAll();
@@ -120,7 +109,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto update(Long id, UserRequestDto requestDto) {
-
         log.info("Обновление пользователя: id={}", id);
 
         User user = userRepository.findById(id)
@@ -130,7 +118,6 @@ public class UserServiceImpl implements UserService {
                 });
 
         userMapper.updateEntity(user, requestDto);
-
         User updatedUser = userRepository.save(user);
 
         log.info(
@@ -138,6 +125,7 @@ public class UserServiceImpl implements UserService {
                 updatedUser.getId(),
                 updatedUser.getEmail()
         );
+        userEventProducer.sendUpdated(user);
 
         return userMapper.toResponse(updatedUser);
     }
@@ -154,7 +142,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void delete(Long id) {
-
         log.info("Удаление пользователя: id={}", id);
 
         User user = userRepository.findById(id)
@@ -163,15 +150,8 @@ public class UserServiceImpl implements UserService {
                     return new UserNotFoundException(id);
                 });
 
-        userRepository.deleteById(id);
-
-        userEventProducer.send(
-                new UserEvent(
-                        EventType.USER_DELETED,
-                        user.getEmail()
-                )
-        );
-
+        userRepository.delete(user);
+        userEventProducer.sendDeleted(user);
         log.info(
                 "Пользователь успешно удален: id={}, email={}",
                 user.getId(),

@@ -16,13 +16,11 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
-
     properties:
       hibernate:
         format_sql: true
         jdbc:
           time_zone: UTC
-
     defer-datasource-initialization: false
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
@@ -30,6 +28,20 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        spring.json.add.type.headers: false
+        retries: 3
+
+app:
+  kafka:
+    topic: user-events
 
 logging:
   level:
