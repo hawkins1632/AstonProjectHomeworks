@@ -1,0 +1,73 @@
+openapi: 3.0.3
+info:
+  title: notification-service API
+  version: 1.0.0
+servers:
+  - url: http://localhost:7070
+
+tags:
+  - name: Notification Controller
+
+paths:
+  /api/notification/email:
+    post:
+      tags: [ Notification Controller ]
+      operationId: postEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRequestDto'
+      responses:
+        '202':
+          description: OK
+        '400':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDto'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDto'
+
+components:
+
+  schemas:
+    NotificationTypeEnum:
+      type: string
+      enum:
+        - CREATED
+        - DELETED
+        - UPDATED
+
+    NotificationRequestDto:
+      type: object
+      required:
+        - email
+        - type
+      properties:
+        email:
+          type: string
+          format: email
+        type:
+          $ref: '#/components/schemas/NotificationTypeEnum'
+
+    ErrorDto:
+      type: object
+      required:
+        - subject
+        - message
+        - timestamp
+      properties:
+        subject:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

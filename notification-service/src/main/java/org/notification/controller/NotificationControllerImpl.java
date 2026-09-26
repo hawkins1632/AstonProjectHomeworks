@@ -1,23 +1,24 @@
-package org.notification.consumer;
+package org.notification.controller;
 
-import event.UserEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.notification.dto.NotificationRequestDto;
 import org.notification.exception.ServiceError;
 import org.notification.exception.ServiceException;
 import org.notification.service.NotificationServiceImpl;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RestController;
 
-@Component
 @RequiredArgsConstructor
-public class UserEventConsumer {
+@RestController
+@Slf4j
+public class NotificationControllerImpl implements NotificationControllerApi {
 
     private final NotificationServiceImpl notificationService;
 
-    @KafkaListener(topics = "${app.kafka.topic}")
-    public void consume(UserEvent event) {
-        String email = event.email();
-        switch (event.type()) {
+    @Override
+    public void postEmail(NotificationRequestDto request) {
+        String email = request.getEmail();
+        switch (request.getType()) {
             case CREATED -> notificationService.sendCreated(email);
             case UPDATED -> notificationService.sendUpdated(email);
             case DELETED -> notificationService.sendDeleted(email);
