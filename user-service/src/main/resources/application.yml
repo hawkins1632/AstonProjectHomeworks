@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: team-user-service
+    name: user-service
 
   datasource:
     #Порт-5433, чтобы приложение подключалось к бд в докере, если надо к реальной бд, то порт надо поменять
@@ -33,16 +33,16 @@ spring:
         spring.json.add.type.headers: false
         retries: 3
 
-app:
-  kafka:
-    topic: user-events
-
 logging:
   level:
     root: WARN
-    org.example: WARN
     org.hibernate: WARN
     org.hibernate.SQL: WARN
     com.zaxxer.hikari: WARN
+    org.example: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+app:
+  kafka:
+    topic: user-events

@@ -2,6 +2,7 @@ package org.example.service;
 
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
 import org.example.exception.UserNotFoundException;
@@ -17,10 +18,11 @@ import java.util.List;
 /**
  * Реализация интерфейса {@link UserService} для управления бизнес-логикой пользователей.
  * Отвечает за валидацию идентификаторов и персональных данных, обработку бизнес-исключений
- * и прямое взаимодействие со слоем доступа к данным через.
+ * и взаимодействие со слоем доступа к данным.
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -38,17 +40,13 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto create(UserRequestDto requestDto) {
+        log.info("Создание пользователя: email = {}", requestDto.getEmail());
 
-
-
-        User user = userRepository.save(
-
-                userMapper.toEntity(requestDto)
-        );
+        User user = userRepository.save(userMapper.toEntity(requestDto));
         userEventProducer.sendCreated(user);
 
+        log.info("Пользователь успешно создан: id={}, email={}", user.getId(), user.getEmail());
         return userMapper.toResponse(user);
-
     }
 
     /**
@@ -61,7 +59,15 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponseDto getById(Long id) {
-        return userMapper.toResponse(userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
+        log.info("Поиск пользователя с id={}", id);
+
+        User user = userRepository.findById(id).orElseThrow(() -> {
+            log.warn("Пользователь не найден: id={}", id);
+            return new UserNotFoundException(id);
+        });
+
+        log.info("Пользователь найден: id={}, email={}", user.getId(), user.getEmail());
+        return userMapper.toResponse(user);
     }
 
     /**
@@ -72,7 +78,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDto> getAll() {
-        return userMapper.toResponseList(userRepository.findAll());
+        log.info("Получение всех пользователей");
+
+        List<User> users = userRepository.findAll();
+
+        log.info("Пользователи найдены: количество={}", users.size());
+        return userMapper.toResponseList(users);
     }
 
     /**
@@ -86,11 +97,19 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto update(Long id, UserRequestDto requestDto) {
-        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        log.info("Обновление пользователя: id={}", id);
+
+        User user = userRepository.findById(id).orElseThrow(() -> {
+            log.warn("Невозможно обновить пользователя, пользователь не найден: id={}", id);
+            return new UserNotFoundException(id);
+        });
+
         userMapper.updateEntity(user, requestDto);
-        userRepository.save(user);
+        User updatedUser = userRepository.save(user);
         userEventProducer.sendUpdated(user);
-        return userMapper.toResponse(user);
+
+        log.info("Пользователь успешно обновлен: id={}, email={}", updatedUser.getId(), updatedUser.getEmail());
+        return userMapper.toResponse(updatedUser);
     }
 
     /**
@@ -105,10 +124,16 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void delete(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
+        log.info("Удаление пользователя: id={}", id);
+
+        User user = userRepository.findById(id).orElseThrow(() -> {
+            log.warn("Невозможно удалить пользователя, пользователь не найден: id={}", id);
+            return new UserNotFoundException(id);
+        });
+
         userRepository.delete(user);
         userEventProducer.sendDeleted(user);
 
+        log.info("Пользователь успешно удален: id={}, email={}", user.getId(), user.getEmail());
     }
 }
