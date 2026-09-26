@@ -1,5 +1,6 @@
 package org.example.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,16 +15,19 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Schema(description = "Данные для создания или обновления пользователя")
 public class UserRequestDto {
     /**
      * Имя пользователя.
      */
+    @Schema(description = "Имя пользователя", example = "Ivan")
     @NotBlank(message = "Name cannot be empty")
     @Size(max = 100)
     private String name;
     /**
      * Электронная почта пользователя.
      */
+    @Schema(description = "Электронная почта", example = "ivan@test.com")
     @NotBlank(message = "Email cannot be empty")
     @Email(message = "Invalid email format")
     @Size(max = 100)
@@ -31,6 +35,7 @@ public class UserRequestDto {
     /**
      * Возраст пользователя.
      */
+    @Schema(description = "Возраст", example = "30")
     @NotNull(message = "Age cannot be null")
     private Integer age;
 }
