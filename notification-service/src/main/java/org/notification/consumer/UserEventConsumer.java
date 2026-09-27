@@ -1,8 +1,8 @@
 package org.notification.consumer;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.events.UserEvent;
-import lombok.RequiredArgsConstructor;
 import org.events.UserEventType;
 import org.notification.service.NotificationServiceImpl;
 import org.springframework.kafka.annotation.KafkaListener;

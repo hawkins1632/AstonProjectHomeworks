@@ -28,8 +28,7 @@ public class NotificationServiceImpl implements NotificationService {
         message.setText(text);
         try {
             mailSender.send(message);
-        }
-        catch (MailException e) {
+        } catch (MailException e) {
             throw new ServiceException(ServiceError.MAIL_SEND_ERROR);
         }
         log.info("Сообщение с темой: '{}' отправлено на почту {}", subject, email);
