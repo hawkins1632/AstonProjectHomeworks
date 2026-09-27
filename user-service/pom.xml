@@ -114,8 +114,20 @@
         </dependency>
 
         <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-kafka</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -127,6 +139,18 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-resttestclient</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -168,39 +192,17 @@
                 </configuration>
             </plugin>
 
-            <!-- JaCoCo -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.version}</version>
-
-                <executions>
-
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-
-                        <configuration>
-                            <excludes>
-                                <exclude>org/example/UserServiceApplication.class</exclude>
-                                <exclude>org/example/dto/**</exclude>
-                                <exclude>org/example/mapper/**</exclude>
-                            </excludes>
-                        </configuration>
-                    </execution>
-
-                </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>org/service/UserServiceApplication.class</exclude>
+                        <exclude>org/service/dto/**</exclude>
+                        <exclude>org/service/mapper/**</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
-
         </plugins>
     </build>
 

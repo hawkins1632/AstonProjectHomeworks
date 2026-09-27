@@ -12,11 +12,6 @@ public enum ServiceError {
             "Ошибка валидации запроса",
             HttpStatus.BAD_REQUEST
     ),
-    INVALID_NOTIFICATION_TYPE(
-            "notification.error.invalid-type",
-            "Недопустимый тип уведомления",
-            HttpStatus.BAD_REQUEST
-    ),
     MAIL_SEND_ERROR(
             "notification.error.mail-send",
             "Не удалось отправить письмо",

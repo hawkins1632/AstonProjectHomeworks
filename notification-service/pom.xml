@@ -114,8 +114,34 @@
         </dependency>
 
         <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-kafka</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.icegreen</groupId>
+            <artifactId>greenmail-junit5</artifactId>
+            <version>2.1.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-resttestclient</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -127,7 +153,7 @@
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>7.12.0</version>
+                <version>6.6.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -154,10 +180,8 @@
                                 <interfaceOnly>true</interfaceOnly>
                                 <useTags>true</useTags>
                                 <additionalModelTypeAnnotations>
-                                    @lombok.Builder
                                     @lombok.AllArgsConstructor
                                     @lombok.NoArgsConstructor
-                                    @lombok.Data
                                 </additionalModelTypeAnnotations>
                                 <generatedConstructorWithRequiredArgs>false</generatedConstructorWithRequiredArgs>
                                 <openApiNullable>false</openApiNullable>
@@ -173,6 +197,19 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>org/notification/controller/NotificationControllerApi.class</exclude>
+                        <exclude>org/notification/controller/ApiUtil.class</exclude>
+                        <exclude>org/notification/dto/**</exclude>
+                        <exclude>org/notification/NotificationApplication.class</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
 
         </plugins>

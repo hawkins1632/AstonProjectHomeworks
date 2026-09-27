@@ -16,8 +16,8 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
 
       properties:
-        "[spring.json.value.default.type]": event.UserEvent
-        "[spring.json.trusted.packages]": event
+        "[spring.json.value.default.type]": org.events.UserEvent
+        "[spring.json.trusted.packages]": org.events
 
   mail:
     host: ${MAIL_HOST:localhost}
