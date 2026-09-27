@@ -32,6 +32,7 @@ public class NotificationServiceImpl implements NotificationService {
         catch (MailException e) {
             throw new ServiceException(ServiceError.MAIL_SEND_ERROR);
         }
+        log.info("Сообщение с темой: '{}' отправлено на почту {}", subject, email);
     }
 
     @Override
