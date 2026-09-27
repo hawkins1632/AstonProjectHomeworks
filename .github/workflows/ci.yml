@@ -23,10 +23,6 @@ jobs:
           java-version: '17'
           cache: 'maven'
 
-      - name: Check Testcontainers version
-        run: mvn dependency:tree | grep testcontainers
-
-
       - name: Run tests and generate coverage report
         run: mvn clean test
 
