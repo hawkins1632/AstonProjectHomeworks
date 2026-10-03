@@ -129,6 +129,8 @@ public abstract class AbstractE2ETest {
 
         kafkaConsumer.subscribe(List.of(TOPIC));
         kafkaConsumer.poll(Duration.ofMillis(500));
+        kafkaConsumer.seekToEnd(kafkaConsumer.assignment());
+        kafkaConsumer.poll(Duration.ofMillis(100));
     }
 
     @AfterEach
