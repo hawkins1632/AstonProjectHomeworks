@@ -12,6 +12,7 @@ import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -24,25 +25,17 @@ import java.util.Map;
 @SpringBootTest
 public abstract class AbstractE2ETest extends AbstractGreenMailTest {
 
+    @Container
     static final ConfluentKafkaContainer KAFKA =
             new ConfluentKafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:latest"));
 
+    @Container
     static final PostgreSQLContainer POSTGRES =
             new PostgreSQLContainer("postgres:17");
 
     protected static final String TOPIC = "user-events";
 
     protected Producer<String, UserEvent> kafkaProducer;
-
-    static {
-        POSTGRES.start();
-        KAFKA.start();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            KAFKA.stop();
-            POSTGRES.stop();
-        }));
-    }
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) {
