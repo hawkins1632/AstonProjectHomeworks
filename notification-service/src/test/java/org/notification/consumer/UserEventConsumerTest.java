@@ -4,42 +4,66 @@ import org.events.UserEvent;
 import org.events.UserEventType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.notification.repository.ProcessedEventRepository;
 import org.notification.service.NotificationServiceImpl;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import java.util.UUID;
+
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserEventConsumerTest {
 
     @Mock
     private NotificationServiceImpl notificationService;
+    @Mock
+    private ProcessedEventRepository processedEventRepository;
 
     @InjectMocks
     private UserEventConsumer consumer;
 
     @Test
-    void consume_created_shouldCallSendCreated() {
-        consumer.consume(new UserEvent(1L, "user@example.com", UserEventType.CREATED));
+    void consume_shouldSendEmailAndMarkProcessed_whenEventIsNew() {
+        UUID eventId = UUID.randomUUID();
+        UserEvent e = new UserEvent(eventId, 1L, "user@example.com", UserEventType.CREATED);
+        when(processedEventRepository.existsByEventId(eventId)).thenReturn(false);
+
+        consumer.consume(e);
+
         verify(notificationService).sendCreated("user@example.com");
-        verifyNoMoreInteractions(notificationService);
+        verify(processedEventRepository).save(argThat(p -> p.getEventId().equals(eventId)));
     }
 
     @Test
-    void consume_updated_shouldCallSendUpdated() {
-        consumer.consume(new UserEvent(1L, "user@example.com", UserEventType.UPDATED));
-        verify(notificationService).sendUpdated("user@example.com");
-        verifyNoMoreInteractions(notificationService);
+    void consume_shouldSkip_whenEventAlreadyProcessed() {
+        UUID eventId = UUID.randomUUID();
+        UserEvent e = new UserEvent(eventId, 1L, "user@example.com", UserEventType.CREATED);
+        when(processedEventRepository.existsByEventId(eventId)).thenReturn(true);
+
+        consumer.consume(e);
+
+        verifyNoInteractions(notificationService);
+        verify(processedEventRepository, never()).save(any());
     }
 
-    @Test
-    void consume_deleted_shouldCallSendDeleted() {
-        consumer.consume(new UserEvent(1L, "user@example.com", UserEventType.DELETED));
-        verify(notificationService).sendDeleted("user@example.com");
-        verifyNoMoreInteractions(notificationService);
-    }
+    @ParameterizedTest
+    @EnumSource(UserEventType.class)
+    void consume_shouldRouteToCorrectMethod_byType(UserEventType type) {
+        UUID eventId = UUID.randomUUID();
+        UserEvent e = new UserEvent(eventId, 1L, "user@example.com", type);
+        when(processedEventRepository.existsByEventId(eventId)).thenReturn(false);
 
+        consumer.consume(e);
+
+        switch (type) {
+            case CREATED -> verify(notificationService).sendCreated("user@example.com");
+            case UPDATED -> verify(notificationService).sendUpdated("user@example.com");
+            case DELETED -> verify(notificationService).sendDeleted("user@example.com");
+        }
+    }
 }

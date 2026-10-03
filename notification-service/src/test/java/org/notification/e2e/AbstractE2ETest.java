@@ -11,8 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.KafkaContainer;
-import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -25,13 +24,25 @@ import java.util.Map;
 @SpringBootTest
 public abstract class AbstractE2ETest extends AbstractGreenMailTest {
 
-    @Container
     static final ConfluentKafkaContainer KAFKA =
             new ConfluentKafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:latest"));
+
+    static final PostgreSQLContainer POSTGRES =
+            new PostgreSQLContainer("postgres:17");
 
     protected static final String TOPIC = "user-events";
 
     protected Producer<String, UserEvent> kafkaProducer;
+
+    static {
+        POSTGRES.start();
+        KAFKA.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            KAFKA.stop();
+            POSTGRES.stop();
+        }));
+    }
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) {
@@ -43,6 +54,10 @@ public abstract class AbstractE2ETest extends AbstractGreenMailTest {
         registry.add("spring.mail.username", () -> "");
         registry.add("spring.mail.password", () -> "");
         registry.add("app.mail.from", () -> MAIL_FROM);
+
+        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+        registry.add("spring.datasource.username", POSTGRES::getUsername);
+        registry.add("spring.datasource.password", POSTGRES::getPassword);
     }
 
     @BeforeEach
