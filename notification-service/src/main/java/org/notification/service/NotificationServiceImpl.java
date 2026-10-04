@@ -10,6 +10,13 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+/**
+ * Реализация сервиса {@link NotificationService} для отправки email-уведомлений.
+ * <p>
+ * Формирует и отправляет простые текстовые письма через {@link JavaMailSender}.
+ * При ошибке отправки выбрасывает {@link ServiceException} с типом
+ * {@link ServiceError#MAIL_SEND_ERROR}.
+ */
 @RequiredArgsConstructor
 @Service
 @Slf4j
@@ -20,6 +27,14 @@ public class NotificationServiceImpl implements NotificationService {
     @Value("${app.mail.from}")
     private String from;
 
+    /**
+     * Формирует и отправляет email-сообщение.
+     *
+     * @param email   адрес получателя
+     * @param subject тема письма
+     * @param text    текст письма
+     * @throws ServiceException если отправить письмо не удалось
+     */
     private void send(String email, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(from);

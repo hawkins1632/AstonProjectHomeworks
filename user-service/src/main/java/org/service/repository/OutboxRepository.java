@@ -6,6 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
+/**
+ * Репозиторий для управления сущностью {@link OutboxEvent}.
+ * <p>
+ * Предоставляет стандартные CRUD-операции для работы с событиями outbox.
+ */
 @Repository
 public interface OutboxRepository extends JpaRepository<OutboxEvent, UUID> {
 }

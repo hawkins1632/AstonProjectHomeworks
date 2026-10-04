@@ -11,6 +11,16 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Kafka-консьюмер событий пользователя.
+ * <p>
+ * Слушает топик, указанный в свойстве {@code app.kafka.topic}, и обрабатывает
+ * события создания, обновления и удаления пользователя, отправляя
+ * соответствующее уведомление на email.
+ * <p>
+ * Обеспечивает идемпотентность обработки: перед обработкой проверяет,
+ * не было ли событие с таким {@code eventId} уже обработано ранее.
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -19,6 +29,16 @@ public class UserEventConsumer {
     private final NotificationService notificationService;
     private final ProcessedEventRepository processedEventRepository;
 
+    /**
+     * Обрабатывает входящее событие пользователя из Kafka.
+     * <p>
+     * Если событие с таким {@code eventId} уже было обработано, оно пропускается.
+     * В зависимости от типа события ({@link UserEventType}) вызывается
+     * соответствующий метод отправки уведомления. После успешной обработки
+     * событие сохраняется в таблицу обработанных событий.
+     *
+     * @param event событие пользователя, полученное из Kafka
+     */
     @KafkaListener(topics = "${app.kafka.topic}")
     @Transactional
     public void consume(UserEvent event) {

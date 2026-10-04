@@ -12,12 +12,29 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+/**
+ * Сервис для сохранения событий пользователя в outbox-таблицу.
+ * <p>
+ * Реализует часть паттерна Transactional Outbox: сериализует событие
+ * {@link UserEvent} в JSON и сохраняет его в БД в рамках текущей
+ * транзакции. Публикация события во внешний брокер выполняется отдельно.
+ */
 @Service
 @RequiredArgsConstructor
 public class OutboxService {
     private final OutboxRepository outboxRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * Сохраняет событие пользователя в outbox-таблицу.
+     * <p>
+     * Формирует {@link UserEvent} на основе переданного пользователя и типа события,
+     * сериализует его в JSON и сохраняет запись {@link OutboxEvent}.
+     *
+     * @param user пользователь, с которым связано событие
+     * @param type тип события (например, {@code CREATED}, {@code UPDATED}, {@code DELETED})
+     * @throws IllegalStateException если не удалось сериализовать событие в JSON
+     */
     public void saveUserEvent(User user, UserEventType type) {
         UserEvent event = new UserEvent(
                 UUID.randomUUID(),
