@@ -10,8 +10,20 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * Конфигурация OpenAPI (Swagger) для микросервиса user-service.
+ * <p>
+ * Настраивает метаданные документации REST API.
+ */
 @Configuration
 public class OpenApiConfig {
+    /**
+     * Создаёт и настраивает объект {@link OpenAPI} с описанием API user-service.
+     * <p>
+     * В описании перечислены доступные CRUD-операции и единый формат ответов об ошибках.
+     *
+     * @return сконфигурированный объект {@link OpenAPI}
+     */
     @Bean
     public OpenAPI userServiceOpenAPI() {
         return new OpenAPI()
