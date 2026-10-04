@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureRestTestClient
-class NotificationControllerE2ETest extends AbstractGreenMailTest {
+class NotificationControllerE2ETest extends AbstractE2ETest {
 
     @Autowired
     private RestTestClient restTestClient;
