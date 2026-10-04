@@ -45,6 +45,10 @@ services:
     hostname: postgres
     ports:
       - "5433:5432"
+    command: >
+      postgres -c wal_level=logical
+               -c max_replication_slots=10
+               -c max_wal_senders=10
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
@@ -70,6 +74,42 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+
+  connector-init:
+    image: curlimages/curl:latest
+    container_name: debezium-init
+    depends_on:
+      connect:
+        condition: service_healthy
+    environment:
+      CONNECT_URL: http://connect:8083
+      CONNECTOR_NAME: user-outbox-connector
+      CONFIG_FILE: /connector-config.json
+    volumes:
+      - ./register-connector.sh:/register.sh:ro
+      - ./connector-config.json:/connector-config.json:ro
+    entrypoint: [ "sh", "/register.sh" ]
+
+  connect:
+    image: debezium/connect:2.7.3.Final
+    container_name: debezium-connect
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: debezium-connect
+      CONFIG_STORAGE_TOPIC: debezium_connect_config
+      OFFSET_STORAGE_TOPIC: debezium_connect_offsets
+      STATUS_STORAGE_TOPIC: debezium_connect_status
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8083/" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "8083:8083"
+    depends_on:
+      - kafka
+      - postgres
 
 volumes:
   kafka_data:

@@ -1,12 +1,6 @@
 package org.service.service;
 
-import org.service.dto.UserRequestDto;
-import org.service.dto.UserResponseDto;
-import org.service.exception.UserNotFoundException;
-import org.service.kafka.UserEventProducer;
-import org.service.mapper.UserMapper;
-import org.service.model.User;
-import org.service.repository.UserRepository;
+import org.events.UserEventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +8,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.service.dto.UserRequestDto;
+import org.service.dto.UserResponseDto;
+import org.service.exception.UserNotFoundException;
+import org.service.mapper.UserMapper;
+import org.service.model.User;
+import org.service.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,7 +34,7 @@ class UserServiceImplTest {
     private UserMapper userMapper;
 
     @Mock
-    private UserEventProducer userEventProducer;
+    private OutboxService outboxService;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -65,10 +65,10 @@ class UserServiceImplTest {
 
         assertThat(result).isEqualTo(responseDto);
 
-        var inOrder = inOrder(userMapper, userRepository, userEventProducer);
+        var inOrder = inOrder(userMapper, userRepository, outboxService);
         inOrder.verify(userMapper).toEntity(requestDto);
         inOrder.verify(userRepository).save(user);
-        inOrder.verify(userEventProducer).sendCreated(user);
+        inOrder.verify(outboxService).saveUserEvent(user, UserEventType.CREATED);
         inOrder.verify(userMapper).toResponse(user);
     }
 
@@ -83,7 +83,7 @@ class UserServiceImplTest {
         assertThat(result).isEqualTo(responseDto);
         verify(userRepository).findById(1L);
         verify(userMapper).toResponse(user);
-        verifyNoInteractions(userEventProducer);
+        verifyNoInteractions(outboxService);
     }
 
     @Test
@@ -94,7 +94,7 @@ class UserServiceImplTest {
         assertThatThrownBy(() -> userService.getById(99L))
                 .isInstanceOf(UserNotFoundException.class);
         verify(userRepository).findById(99L);
-        verifyNoInteractions(userMapper, userEventProducer);
+        verifyNoInteractions(userMapper, outboxService);
     }
 
     @Test
@@ -110,7 +110,7 @@ class UserServiceImplTest {
         assertThat(result).hasSize(1).containsExactly(responseDto);
         verify(userRepository).findAll();
         verify(userMapper).toResponseList(users);
-        verifyNoInteractions(userEventProducer);
+        verifyNoInteractions(outboxService);
     }
 
     @Test
@@ -124,7 +124,7 @@ class UserServiceImplTest {
         assertThat(result).isEmpty();
         verify(userRepository).findAll();
         verify(userMapper).toResponseList(List.of());
-        verifyNoInteractions(userEventProducer);
+        verifyNoInteractions(outboxService);
     }
 
     @Test
@@ -152,11 +152,11 @@ class UserServiceImplTest {
         assertThat(user.getEmail()).isEqualTo("petr@test.com");
         assertThat(user.getAge()).isEqualTo(35);
 
-        var inOrder = inOrder(userRepository, userMapper, userEventProducer);
+        var inOrder = inOrder(userRepository, userMapper, outboxService);
         inOrder.verify(userRepository).findById(1L);
         inOrder.verify(userMapper).updateEntity(user, updateRequest);
         inOrder.verify(userRepository).save(user);
-        inOrder.verify(userEventProducer).sendUpdated(user);
+        inOrder.verify(outboxService).saveUserEvent(user, UserEventType.UPDATED);
         inOrder.verify(userMapper).toResponse(user);
     }
 
@@ -170,7 +170,7 @@ class UserServiceImplTest {
                 .isInstanceOf(UserNotFoundException.class);
         verify(userRepository).findById(99L);
         verify(userRepository, never()).save(any());
-        verifyNoInteractions(userMapper, userEventProducer);
+        verifyNoInteractions(userMapper, outboxService);
     }
 
     @Test
@@ -183,10 +183,10 @@ class UserServiceImplTest {
 
         userService.delete(1L);
 
-        var inOrder = inOrder(userRepository, userEventProducer);
+        var inOrder = inOrder(userRepository, outboxService);
         inOrder.verify(userRepository).findById(1L);
         inOrder.verify(userRepository).delete(user);
-        inOrder.verify(userEventProducer).sendDeleted(user);
+        inOrder.verify(outboxService).saveUserEvent(user, UserEventType.DELETED);
     }
 
     @Test
@@ -199,6 +199,6 @@ class UserServiceImplTest {
 
         verify(userRepository).findById(99L);
         verify(userRepository, never()).delete(any());
-        verifyNoInteractions(userEventProducer);
+        verifyNoInteractions(outboxService);
     }
 }

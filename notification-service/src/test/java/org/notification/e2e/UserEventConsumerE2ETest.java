@@ -8,6 +8,7 @@ import org.events.UserEventType;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,7 +16,7 @@ class UserEventConsumerE2ETest extends AbstractE2ETest {
 
     @Test
     void shouldSendCreatedEmail() {
-        sendEvent(new UserEvent(1L, RECIPIENT, UserEventType.CREATED));
+        sendEvent(new UserEvent(UUID.randomUUID(), 1L, RECIPIENT, UserEventType.CREATED));
 
         MimeMessage message = waitForMessage();
         assertThat(message)
@@ -27,7 +28,7 @@ class UserEventConsumerE2ETest extends AbstractE2ETest {
 
     @Test
     void shouldSendUpdatedEmail() {
-        sendEvent(new UserEvent(2L, RECIPIENT, UserEventType.UPDATED));
+        sendEvent(new UserEvent(UUID.randomUUID(), 2L, RECIPIENT, UserEventType.UPDATED));
 
         MimeMessage message = waitForMessage();
         assertThat(message).isNotNull();
@@ -38,7 +39,7 @@ class UserEventConsumerE2ETest extends AbstractE2ETest {
 
     @Test
     void shouldSendDeletedEmail() {
-        sendEvent(new UserEvent(3L, RECIPIENT, UserEventType.DELETED));
+        sendEvent(new UserEvent(UUID.randomUUID(), 3L, RECIPIENT, UserEventType.DELETED));
 
         MimeMessage message = waitForMessage();
         assertThat(message).isNotNull();

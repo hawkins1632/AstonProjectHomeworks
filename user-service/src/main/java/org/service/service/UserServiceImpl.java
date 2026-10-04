@@ -3,10 +3,10 @@ package org.service.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.events.UserEventType;
 import org.service.dto.UserRequestDto;
 import org.service.dto.UserResponseDto;
 import org.service.exception.UserNotFoundException;
-import org.service.kafka.UserEventProducer;
 import org.service.mapper.UserMapper;
 import org.service.model.User;
 import org.service.repository.UserRepository;
@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final UserEventProducer userEventProducer;
+    private final OutboxService outboxService;
 
 
     /**
@@ -43,7 +43,8 @@ public class UserServiceImpl implements UserService {
         log.info("Создание пользователя: email = {}", requestDto.getEmail());
 
         User user = userRepository.save(userMapper.toEntity(requestDto));
-        userEventProducer.sendCreated(user);
+
+        outboxService.saveUserEvent(user, UserEventType.CREATED);
 
         log.info("Пользователь успешно создан: id={}, email={}", user.getId(), user.getEmail());
         return userMapper.toResponse(user);
@@ -106,7 +107,7 @@ public class UserServiceImpl implements UserService {
 
         userMapper.updateEntity(user, requestDto);
         User updatedUser = userRepository.save(user);
-        userEventProducer.sendUpdated(user);
+        outboxService.saveUserEvent(user, UserEventType.UPDATED);
 
         log.info("Пользователь успешно обновлен: id={}, email={}", updatedUser.getId(), updatedUser.getEmail());
         return userMapper.toResponse(updatedUser);
@@ -132,7 +133,7 @@ public class UserServiceImpl implements UserService {
         });
 
         userRepository.delete(user);
-        userEventProducer.sendDeleted(user);
+        outboxService.saveUserEvent(user, UserEventType.DELETED);
 
         log.info("Пользователь успешно удален: id={}, email={}", user.getId(), user.getEmail());
     }

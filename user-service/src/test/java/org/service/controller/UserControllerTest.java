@@ -1,11 +1,11 @@
 package org.service.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
 import org.service.dto.UserRequestDto;
 import org.service.dto.UserResponseDto;
 import org.service.exception.UserNotFoundException;
 import org.service.service.UserService;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
