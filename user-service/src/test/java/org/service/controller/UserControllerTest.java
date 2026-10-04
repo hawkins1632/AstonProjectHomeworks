@@ -8,6 +8,7 @@ import org.service.exception.UserNotFoundException;
 import org.service.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -138,6 +139,21 @@ class UserControllerTest {
     }
 
     @Test
+    void create_shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
+        UserRequestDto request = new UserRequestDto("Charlie", "charlie@mail.com", 35);
+
+        when(userService.create(any(UserRequestDto.class)))
+                .thenThrow(new DataIntegrityViolationException("duplicate email"));
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("User with this email already exists"));
+    }
+
+    @Test
     void update_shouldReturnUpdatedUser() throws Exception {
         UserRequestDto request = new UserRequestDto("David", "david@mail.com", 40);
         UserResponseDto response = new UserResponseDto(1L, "David", "david@mail.com", 40);
@@ -196,5 +212,23 @@ class UserControllerTest {
         mockMvc.perform(delete("/api/users/99"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Failed to find user with id: 99"));
+    }
+
+    @Test
+    void getById_shouldReturnBadRequest_whenIdIsNotNumeric() throws Exception {
+        mockMvc.perform(get("/api/users/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").exists());
+    }
+
+    @Test
+    void create_shouldReturnBadRequest_whenBodyIsMalformedJson() throws Exception {
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{ not a valid json }"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").exists());
     }
 }

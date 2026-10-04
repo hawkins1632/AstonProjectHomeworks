@@ -16,21 +16,27 @@ public class UserResponseDto {
     /**
      * Идентификатор пользователя.
      */
-    @Schema(description = "Идентификатор пользователя", example = "1")
+    @Schema(description = "Уникальный идентификатор пользователя",
+            example = "1", requiredMode = Schema.RequiredMode.REQUIRED, format = "int64")
     private Long id;
+
     /**
      * Имя пользователя.
      */
-    @Schema(description = "Имя пользователя", example = "Ivan")
+    @Schema(description = "Имя пользователя", example = "Ivan", requiredMode = Schema.RequiredMode.REQUIRED)
     private String name;
+
     /**
      * Электронная почта пользователя.
      */
-    @Schema(description = "Электронная почта", example = "ivan@test.com")
+    @Schema(description = "Электронная почта пользователя",
+            example = "ivan@test.com", requiredMode = Schema.RequiredMode.REQUIRED, format = "email")
     private String email;
+
     /**
      * Возраст пользователя.
      */
-    @Schema(description = "Возраст", example = "30")
+    @Schema(description = "Возраст пользователя",
+            example = "30", requiredMode = Schema.RequiredMode.REQUIRED, format = "int32")
     private Integer age;
 }
