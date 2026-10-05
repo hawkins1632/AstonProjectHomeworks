@@ -21,15 +21,15 @@ paths:
               $ref: '#/components/schemas/NotificationRequestDto'
       responses:
         '202':
-          description: OK
+          description: Уведомление успешно обработано
         '400':
-          description: Client error
+          description: Некорректные данные запроса
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorDto'
         '500':
-          description: Internal error
+          description: Внутренняя ошибка сервера
           content:
             application/json:
               schema:
