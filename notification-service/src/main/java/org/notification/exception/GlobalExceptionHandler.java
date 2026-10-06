@@ -3,6 +3,8 @@ package org.notification.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.notification.dto.ErrorDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -37,5 +39,37 @@ public class GlobalExceptionHandler {
         );
         log.error("Ошибка: {}:{}", error.getSubject(), error.getMessage());
         return ResponseEntity.status(error.getStatus()).body(body);
+    }
+
+    /**
+     * Обрабатывает ошибки валидации тела запроса (@Valid).
+     * <p>
+     * Возвращает HTTP 400 Bad Request с телом {@link ErrorDto} в формате,
+     * заявленном в OpenAPI-спецификации.
+     *
+     * @param ex исключение валидации
+     * @return ответ с телом {@link ErrorDto} и статусом 400
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorDto> handleValidation(MethodArgumentNotValidException ex) {
+        ServiceError error = ServiceError.VALIDATION_ERROR;
+        log.error("Ошибка валидации запроса: {}", ex.getMessage());
+        return ResponseEntity.status(error.getStatus())
+                .body(new ErrorDto(error.getSubject(), error.getMessage(), LocalDateTime.now()));
+    }
+
+    /**
+     * Обрабатывает ошибки чтения тела запроса
+     * (например, некорректный или неполный JSON).
+     *
+     * @param ex исключение
+     * @return ответ с телом {@link ErrorDto} и статусом 400
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorDto> handleMessageNotReadable(HttpMessageNotReadableException ex) {
+        ServiceError error = ServiceError.VALIDATION_ERROR;
+        log.error("Некорректное тело запроса: {}", ex.getMessage());
+        return ResponseEntity.status(error.getStatus())
+                .body(new ErrorDto(error.getSubject(), error.getMessage(), LocalDateTime.now()));
     }
 }

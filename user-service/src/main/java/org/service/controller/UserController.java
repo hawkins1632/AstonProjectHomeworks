@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.service.dto.UserHalCollectionResponse;
+import org.service.dto.UserHalResponse;
 import org.service.dto.UserRequestDto;
 import org.service.dto.UserResponseDto;
 import org.service.exception.ErrorResponse;
@@ -53,8 +55,24 @@ public class UserController {
     @ApiResponses({
             @ApiResponse(
                     responseCode = "201",
-                    description = "Пользователь успешно создан"
-            ),
+                    description = "Пользователь успешно создан. Ответ возвращается в формате HAL+JSON "
+                            + "и содержит HATEOAS-ссылки _links.",
+                    content = @Content(mediaType = MediaTypes.HAL_JSON_VALUE,
+                            schema = @Schema(implementation = UserHalResponse.class),
+                            examples = @ExampleObject(name = "created-user",
+                                    summary = "HAL-ответ с созданным пользователем",
+                                    value = """
+                                            {
+                                              "id": 1,
+                                              "name": "Ivan",
+                                              "email": "ivan@test.com",
+                                              "age": 30,
+                                              "_links": {
+                                                "self": { "href": "http://localhost:8080/api/users/1" },
+                                                "users": { "href": "http://localhost:8080/api/users" }
+                                              }
+                                            }
+                                            """))),
             @ApiResponse(responseCode = "400", description = "Ошибка валидации тела запроса",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ValidationErrorResponse.class),
@@ -125,8 +143,24 @@ public class UserController {
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description = "Пользователь найден"
-            ),
+                    description = "Пользователь найден. Ответ возвращается в формате HAL+JSON "
+                            + "и содержит HATEOAS-ссылки _links.",
+                    content = @Content(mediaType = MediaTypes.HAL_JSON_VALUE,
+                            schema = @Schema(implementation = UserHalResponse.class),
+                            examples = @ExampleObject(name = "found-user",
+                                    summary = "HAL-ответ с найденным пользователем",
+                                    value = """
+                                            {
+                                              "id": 1,
+                                              "name": "Ivan",
+                                              "email": "ivan@test.com",
+                                              "age": 30,
+                                              "_links": {
+                                                "self": { "href": "http://localhost:8080/api/users/1" },
+                                                "users": { "href": "http://localhost:8080/api/users" }
+                                              }
+                                            }
+                                            """))),
             @ApiResponse(responseCode = "400", description = "Неверный формат идентификатора (id должен быть целым числом)",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class),
@@ -173,8 +207,33 @@ public class UserController {
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description = "Список пользователей"
-            )
+                    description = "Список пользователей. Ответ возвращается в формате HAL+JSON: "
+                            + "вложенный список в поле _embedded и HATEOAS-ссылки _links.",
+                    content = @Content(mediaType = MediaTypes.HAL_JSON_VALUE,
+                            schema = @Schema(implementation = UserHalCollectionResponse.class),
+                            examples = @ExampleObject(name = "users-list",
+                                    summary = "HAL-ответ со списком пользователей",
+                                    value = """
+                                            {
+                                              "_embedded": {
+                                                "userResponseDtoList": [
+                                                  {
+                                                    "id": 1,
+                                                    "name": "Ivan",
+                                                    "email": "ivan@test.com",
+                                                    "age": 30,
+                                                    "_links": {
+                                                      "self": { "href": "http://localhost:8080/api/users/1" },
+                                                      "users": { "href": "http://localhost:8080/api/users" }
+                                                    }
+                                                  }
+                                                ]
+                                              },
+                                              "_links": {
+                                                "self": { "href": "http://localhost:8080/api/users" }
+                                              }
+                                            }
+                                            """)))
     })
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<CollectionModel<EntityModel<UserResponseDto>>> getAll() {
@@ -202,8 +261,24 @@ public class UserController {
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description = "Пользователь успешно обновлён"
-            ),
+                    description = "Пользователь успешно обновлён. Ответ возвращается в формате HAL+JSON "
+                            + "и содержит HATEOAS-ссылки _links.",
+                    content = @Content(mediaType = MediaTypes.HAL_JSON_VALUE,
+                            schema = @Schema(implementation = UserHalResponse.class),
+                            examples = @ExampleObject(name = "updated-user",
+                                    summary = "HAL-ответ с обновлённым пользователем",
+                                    value = """
+                                            {
+                                              "id": 1,
+                                              "name": "Ivan Petrov",
+                                              "email": "ivan.petrov@test.com",
+                                              "age": 31,
+                                              "_links": {
+                                                "self": { "href": "http://localhost:8080/api/users/1" },
+                                                "users": { "href": "http://localhost:8080/api/users" }
+                                              }
+                                            }
+                                            """))),
             @ApiResponse(responseCode = "400", description = "Ошибка валидации тела запроса или неверный формат идентификатора",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(oneOf = {ValidationErrorResponse.class, ErrorResponse.class}),
