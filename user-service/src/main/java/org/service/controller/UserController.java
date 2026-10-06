@@ -19,6 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.service.hateoas.UserModelAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.MediaTypes;
 
 import java.util.List;
 
@@ -32,6 +36,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final UserModelAssembler userModelAssembler;
 
     /**
      * Создаёт нового пользователя.
@@ -46,19 +51,10 @@ public class UserController {
                     + "При успехе возвращает созданного пользователя со статусом 201 Created."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Пользователь успешно создан",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserResponseDto.class),
-                            examples = @ExampleObject(name = "created-user",
-                                    summary = "Созданный пользователь",
-                                    value = """
-                                            {
-                                              "id": 1,
-                                              "name": "Ivan",
-                                              "email": "ivan@test.com",
-                                              "age": 30
-                                            }
-                                            """))),
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Пользователь успешно создан"
+            ),
             @ApiResponse(responseCode = "400", description = "Ошибка валидации тела запроса",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ValidationErrorResponse.class),
@@ -87,8 +83,8 @@ public class UserController {
                                             }
                                             """)))
     })
-    @PostMapping
-    public ResponseEntity<UserResponseDto> create(
+    @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<UserResponseDto>> create(
             @Valid
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные нового пользователя. Все поля обязательны.",
@@ -107,7 +103,12 @@ public class UserController {
             )
             @RequestBody UserRequestDto requestDto) {
         UserResponseDto responseDto = userService.create(requestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+        return ResponseEntity.status(HttpStatus.CREATED).
+                body(
+
+                userModelAssembler.toModel(responseDto)
+
+                );
     }
 
     /**
@@ -122,19 +123,10 @@ public class UserController {
                     + "Если пользователь с указанным id не существует, возвращается 404 Not Found."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Пользователь найден",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserResponseDto.class),
-                            examples = @ExampleObject(name = "found-user",
-                                    summary = "Найденный пользователь",
-                                    value = """
-                                            {
-                                              "id": 1,
-                                              "name": "Ivan",
-                                              "email": "ivan@test.com",
-                                              "age": 30
-                                            }
-                                            """))),
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Пользователь найден"
+            ),
             @ApiResponse(responseCode = "400", description = "Неверный формат идентификатора (id должен быть целым числом)",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class),
@@ -160,51 +152,38 @@ public class UserController {
                                             }
                                             """)))
     })
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> getById(
+    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<UserResponseDto>> getById(
             @Parameter(description = "Идентификатор пользователя (целое положительное число)", example = "1", required = true)
             @PathVariable Long id) {
         UserResponseDto responseDto = userService.getById(id);
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.ok(userModelAssembler.toModel(responseDto));
     }
 
     /**
      * Возвращает список всех пользователей.
      *
-     * @return ответ со списком пользователей и статусом 200 OK
+     * @return HAL-представление коллекции пользователей со статусом 200 OK
      */
     @Operation(
             summary = "Получить всех пользователей",
-            description = "Возвращает список всех пользователей. "
-                    + "Если пользователи отсутствуют, возвращается пустой массив []."
+            description = "Возвращает HAL-представление коллекции пользователей. "
+                    + "Если пользователи отсутствуют, возвращается пустая HAL-коллекция."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Список пользователей",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(type = "array", implementation = UserResponseDto.class),
-                            examples = @ExampleObject(name = "users-list",
-                                    summary = "Список пользователей",
-                                    value = """
-                                            [
-                                              {
-                                                "id": 1,
-                                                "name": "Ivan",
-                                                "email": "ivan@test.com",
-                                                "age": 30
-                                              },
-                                              {
-                                                "id": 2,
-                                                "name": "Anna",
-                                                "email": "anna@test.com",
-                                                "age": 25
-                                              }
-                                            ]
-                                            """)))
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Список пользователей"
+            )
     })
-    @GetMapping
-    public ResponseEntity<List<UserResponseDto>> getAll() {
+    @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<CollectionModel<EntityModel<UserResponseDto>>> getAll() {
         List<UserResponseDto> responseDtos = userService.getAll();
-        return ResponseEntity.ok(responseDtos);
+        return ResponseEntity.ok(
+
+                userModelAssembler.toCollectionModel(responseDtos)
+
+        );
     }
 
     /**
@@ -221,19 +200,10 @@ public class UserController {
                     + "Если пользователь с указанным id не существует, возвращается 404 Not Found."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Пользователь успешно обновлён",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserResponseDto.class),
-                            examples = @ExampleObject(name = "updated-user",
-                                    summary = "Обновлённый пользователь",
-                                    value = """
-                                            {
-                                              "id": 1,
-                                              "name": "Ivan Petrov",
-                                              "email": "ivan.petrov@test.com",
-                                              "age": 31
-                                            }
-                                            """))),
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Пользователь успешно обновлён"
+            ),
             @ApiResponse(responseCode = "400", description = "Ошибка валидации тела запроса или неверный формат идентификатора",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(oneOf = {ValidationErrorResponse.class, ErrorResponse.class}),
@@ -273,8 +243,8 @@ public class UserController {
                                             }
                                             """)))
     })
-    @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDto> update(
+    @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<UserResponseDto>> update(
             @Parameter(description = "Идентификатор пользователя (целое положительное число)", example = "1", required = true)
             @PathVariable Long id,
             @Valid
@@ -295,7 +265,11 @@ public class UserController {
             )
             @RequestBody UserRequestDto requestDto) {
         UserResponseDto responseDto = userService.update(id, requestDto);
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.ok(
+
+                userModelAssembler.toModel(responseDto)
+
+        );
     }
 
     /**

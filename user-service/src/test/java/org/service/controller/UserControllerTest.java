@@ -5,9 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.service.dto.UserRequestDto;
 import org.service.dto.UserResponseDto;
 import org.service.exception.UserNotFoundException;
+import org.service.hateoas.UserModelAssembler;
 import org.service.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -23,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
+@Import(UserModelAssembler.class)
 class UserControllerTest {
 
     @Autowired
@@ -40,10 +43,16 @@ class UserControllerTest {
 
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].name").value("Alice"))
-                .andExpect(jsonPath("$[0].email").value("alice@mail.com"))
-                .andExpect(jsonPath("$[0].age").value(30));
+                .andExpect(jsonPath("$._embedded.userResponseDtoList[0].id").value(1))
+                .andExpect(jsonPath("$._embedded.userResponseDtoList[0].name").value("Alice"))
+                .andExpect(jsonPath("$._embedded.userResponseDtoList[0].email").value("alice@mail.com"))
+                .andExpect(jsonPath("$._embedded.userResponseDtoList[0].age").value(30))
+                .andExpect(jsonPath("$._embedded.userResponseDtoList[0]._links.self.href")
+                        .value("http://localhost/api/users/1"))
+                .andExpect(jsonPath("$._embedded.userResponseDtoList[0]._links.users.href")
+                        .value("http://localhost/api/users"))
+                .andExpect(jsonPath("$._links.self.href")
+                        .value("http://localhost/api/users"));
 
         verify(userService).getAll();
     }
@@ -54,8 +63,10 @@ class UserControllerTest {
 
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isEmpty());
+                .andExpect(jsonPath("$").isMap())
+                .andExpect(jsonPath("$._embedded").doesNotExist())
+                .andExpect(jsonPath("$._links.self.href")
+                        .value("http://localhost/api/users"));
     }
 
     @Test
