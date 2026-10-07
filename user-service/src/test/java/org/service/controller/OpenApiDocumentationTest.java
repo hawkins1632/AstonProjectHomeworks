@@ -61,36 +61,46 @@ class OpenApiDocumentationTest {
                 .andExpect(jsonPath("$.components.schemas.UserRequestDto.properties.age.type")
                         .value("integer"))
 
-                // HATEOAS: EntityModel<UserResponseDto>
-                .andExpect(jsonPath("$.components.schemas.EntityModelUserResponseDto").exists())
+                // HATEOAS: UserHalResponse (EntityModel<UserResponseDto>)
+                .andExpect(jsonPath("$.components.schemas.UserHalResponse").exists())
                 .andExpect(jsonPath(
-                        "$.components.schemas.EntityModelUserResponseDto.properties.id.type")
+                        "$.components.schemas.UserHalResponse.properties.id.type")
                         .value("integer"))
                 .andExpect(jsonPath(
-                        "$.components.schemas.EntityModelUserResponseDto.properties.id.format")
+                        "$.components.schemas.UserHalResponse.properties.id.format")
                         .value("int64"))
                 .andExpect(jsonPath(
-                        "$.components.schemas.EntityModelUserResponseDto.properties.name.type")
+                        "$.components.schemas.UserHalResponse.properties.name.type")
                         .value("string"))
                 .andExpect(jsonPath(
-                        "$.components.schemas.EntityModelUserResponseDto.properties.email.type")
+                        "$.components.schemas.UserHalResponse.properties.email.type")
                         .value("string"))
                 .andExpect(jsonPath(
-                        "$.components.schemas.EntityModelUserResponseDto.properties.age.type")
+                        "$.components.schemas.UserHalResponse.properties.age.type")
                         .value("integer"))
-
-                // HATEOAS: CollectionModel<EntityModel<UserResponseDto>>
                 .andExpect(jsonPath(
-                        "$.components.schemas.CollectionModelEntityModelUserResponseDto")
+                        "$.components.schemas.UserHalResponse.properties._links")
+                        .exists())
+
+                // HATEOAS: UserHalCollectionResponse (CollectionModel<EntityModel<UserResponseDto>>)
+                .andExpect(jsonPath(
+                        "$.components.schemas.UserHalCollectionResponse")
+                        .exists())
+                .andExpect(jsonPath(
+                        "$.components.schemas.UserHalCollectionResponse.properties._embedded")
+                        .exists())
+                .andExpect(jsonPath(
+                        "$.components.schemas.UserHalCollectionResponse.properties._links")
                         .exists())
 
                 // POST /api/users
                 .andExpect(jsonPath(
                         "$.paths['/api/users'].post.responses['201'].description")
-                        .value("Пользователь успешно создан"))
+                        .value("Пользователь успешно создан. Ответ возвращается в формате HAL+JSON "
+                                + "и содержит HATEOAS-ссылки _links."))
                 .andExpect(jsonPath(
                         "$.paths['/api/users'].post.responses['201'].content['application/hal+json'].schema['$ref']")
-                        .value("#/components/schemas/EntityModelUserResponseDto"))
+                        .value("#/components/schemas/UserHalResponse"))
                 .andExpect(jsonPath(
                         "$.paths['/api/users'].post.responses['400']")
                         .exists())
@@ -101,12 +111,12 @@ class OpenApiDocumentationTest {
                 // GET /api/users
                 .andExpect(jsonPath(
                         "$.paths['/api/users'].get.responses['200'].content['application/hal+json'].schema['$ref']")
-                        .value("#/components/schemas/CollectionModelEntityModelUserResponseDto"))
+                        .value("#/components/schemas/UserHalCollectionResponse"))
 
                 // GET /api/users/{id}
                 .andExpect(jsonPath(
                         "$.paths['/api/users/{id}'].get.responses['200'].content['application/hal+json'].schema['$ref']")
-                        .value("#/components/schemas/EntityModelUserResponseDto"))
+                        .value("#/components/schemas/UserHalResponse"))
                 .andExpect(jsonPath(
                         "$.paths['/api/users/{id}'].get.responses['400']")
                         .exists())
@@ -117,7 +127,7 @@ class OpenApiDocumentationTest {
                 // PUT /api/users/{id}
                 .andExpect(jsonPath(
                         "$.paths['/api/users/{id}'].put.responses['200'].content['application/hal+json'].schema['$ref']")
-                        .value("#/components/schemas/EntityModelUserResponseDto"))
+                        .value("#/components/schemas/UserHalResponse"))
                 .andExpect(jsonPath(
                         "$.paths['/api/users/{id}'].put.responses['400']")
                         .exists())
