@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -119,7 +120,7 @@ public abstract class AbstractE2ETest {
         Map<String, Object> props = new HashMap<>();
         props.put("bootstrap.servers", KAFKA.getBootstrapServers());
         props.put("group.id", "e2e-consumer-" + System.nanoTime());
-        props.put("auto.offset.reset", "latest");
+        props.put("auto.offset.reset", "earliest");
 
         kafkaConsumer = new DefaultKafkaConsumerFactory<String, UserEvent>(
                 props,
@@ -129,8 +130,6 @@ public abstract class AbstractE2ETest {
 
         kafkaConsumer.subscribe(List.of(TOPIC));
         kafkaConsumer.poll(Duration.ofMillis(500));
-        kafkaConsumer.seekToEnd(kafkaConsumer.assignment());
-        kafkaConsumer.poll(Duration.ofMillis(100));
     }
 
     @AfterEach
@@ -140,24 +139,29 @@ public abstract class AbstractE2ETest {
         userRepository.deleteAll();
     }
 
-    protected UserEvent awaitEvent(String email, UserEventType type) {
-        UserEvent[] holder = new UserEvent[1];
+    protected void awaitEvent(String email, UserEventType type, Long expectedId) {
         await().atMost(Duration.ofSeconds(15))
                 .pollInterval(Duration.ofMillis(300))
-                .until(() -> {
+                .untilAsserted(() -> {
                     ConsumerRecords<String, UserEvent> records =
                             kafkaConsumer.poll(Duration.ofMillis(500));
+
+                    boolean found = false;
                     for (ConsumerRecord<String, UserEvent> record : records) {
                         UserEvent value = record.value();
                         if (value != null
+                                && expectedId.equals(value.id())
                                 && email.equals(value.email())
                                 && type == value.type()) {
-                            holder[0] = value;
-                            return true;
+                            found = true;
+                            break;
                         }
                     }
-                    return false;
+
+                    assertThat(found)
+                            .as("User event: id=%s, email=%s, type=%s",
+                                    expectedId, email, type)
+                            .isTrue();
                 });
-        return holder[0];
     }
 }
