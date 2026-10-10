@@ -48,6 +48,7 @@
         <module>discovery-server</module>
         <module>user-service</module>
         <module>notification-service</module>
+        <module>gateway-service</module>
     </modules>
 
     <build>
