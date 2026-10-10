@@ -1,6 +1,5 @@
 package org.service.e2e;
 
-import org.events.UserEvent;
 import org.events.UserEventType;
 import org.junit.jupiter.api.Test;
 import org.service.dto.UserRequestDto;
@@ -26,11 +25,7 @@ class UserKafkaE2ETest extends AbstractE2ETest {
 
         assertThat(response).isNotNull();
 
-        UserEvent event = awaitEvent("alice@e2e.com", UserEventType.CREATED);
-
-        assertThat(event.id()).isEqualTo(response.getId());
-        assertThat(event.email()).isEqualTo("alice@e2e.com");
-        assertThat(event.type()).isEqualTo(UserEventType.CREATED);
+        awaitEvent("alice@e2e.com", UserEventType.CREATED, response.getId());
     }
 
     @Test
@@ -44,10 +39,7 @@ class UserKafkaE2ETest extends AbstractE2ETest {
                 .exchange()
                 .expectStatus().isOk();
 
-        UserEvent event = awaitEvent("bobby@e2e.com", UserEventType.UPDATED);
-
-        assertThat(event.id()).isEqualTo(saved.getId());
-        assertThat(event.email()).isEqualTo("bobby@e2e.com");
+        awaitEvent("bobby@e2e.com", UserEventType.UPDATED, saved.getId());
     }
 
     @Test
@@ -59,9 +51,6 @@ class UserKafkaE2ETest extends AbstractE2ETest {
                 .exchange()
                 .expectStatus().isNoContent();
 
-        UserEvent event = awaitEvent("charlie@e2e.com", UserEventType.DELETED);
-
-        assertThat(event.id()).isEqualTo(saved.getId());
-        assertThat(event.email()).isEqualTo("charlie@e2e.com");
+        awaitEvent("charlie@e2e.com", UserEventType.DELETED, saved.getId());
     }
 }
