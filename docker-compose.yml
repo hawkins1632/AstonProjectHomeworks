@@ -146,6 +146,21 @@ services:
       DB_PASSWORD: admin
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
 
+  gateway-service:
+    build: ./gateway-service
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka/
+
   notification-service:
     build: ./notification-service
     container_name: notification-service
