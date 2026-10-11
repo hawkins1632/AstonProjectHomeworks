@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.notification.exception.ServiceError;
 import org.notification.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 @Slf4j
+@RefreshScope
 public class NotificationServiceImpl implements NotificationService {
 
     private final JavaMailSender mailSender;

@@ -158,7 +158,7 @@ services:
       kafka:
         condition: service_started
     environment:
-      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+      CONFIG_SERVER_URI: http://config-server:8888
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka/
       DB_URL: jdbc:postgresql://postgres:5432/postgres
       DB_USERNAME: postgres
@@ -180,7 +180,7 @@ services:
       notification-service:
         condition: service_started
     environment:
-      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+      CONFIG_SERVER_URI: http://config-server:8888
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka/
 
   notification-service:
@@ -200,7 +200,7 @@ services:
       mailhog:
         condition: service_started
     environment:
-      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+      CONFIG_SERVER_URI: http://config-server:8888
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka/
       DB_URL: jdbc:postgresql://postgres:5432/postgres
       DB_USERNAME: postgres
