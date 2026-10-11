@@ -9,6 +9,6 @@ spring:
     config:
       server:
         git:
-          uri: ${CONFIG_GIT_URI:C:/Users/KDFX Modes/IdeaProjects/config-repository}
+          uri: ${CONFIG_GIT_URI:https://github.com/matveic1/config-repository.git}
           default-label: main
           clone-on-start: false
