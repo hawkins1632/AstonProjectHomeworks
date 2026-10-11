@@ -1,18 +1,17 @@
 import org.example.configserver.ConfigServerApplication;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.cloud.config.client.ConfigClientProperties;
-import org.springframework.cloud.config.client.ConfigServicePropertySourceLocator;
-import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.env.StandardEnvironment;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -48,53 +47,48 @@ class ConfigServerApplicationTests {
 
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).contains("from-config-server");
+        assertThat(response.body()).contains("app.test-property");
     }
 
     @Test
     void configClientShouldLoadRemoteProperty() {
-        PropertySource<?> remoteProperties = loadRemoteProperties();
-
-        assertThat(remoteProperties).isNotNull();
-        assertThat(remoteProperties.getProperty("app.test-property"))
-                .isEqualTo("from-config-server");
+        try (ConfigurableApplicationContext client = startClient()) {
+            assertThat(client.getEnvironment()
+                    .getProperty("app.test-property"))
+                    .isEqualTo("from-config-server");
+        }
     }
 
     @Test
     void localPropertyShouldOverrideRemoteProperty() {
-        PropertySource<?> remoteProperties = loadRemoteProperties();
-
-        StandardEnvironment environment = new StandardEnvironment();
-        environment.getPropertySources().addLast(remoteProperties);
-        environment.getPropertySources().addFirst(
-                new MapPropertySource(
-                        "local-test",
-                        Map.of("app.test-property", "local-override")
-                )
-        );
-
-        assertThat(environment.getProperty("app.test-property"))
-                .isEqualTo("local-override");
+        try (ConfigurableApplicationContext client = startClient(
+                "--app.test-property=local-override"
+        )) {
+            assertThat(client.getEnvironment()
+                    .getProperty("app.test-property"))
+                    .isEqualTo("local-override");
+        }
     }
 
-    private PropertySource<?> loadRemoteProperties() {
-        StandardEnvironment environment = new StandardEnvironment();
+    private ConfigurableApplicationContext startClient(String... extraArgs) {
 
-        environment.getPropertySources().addFirst(
-                new MapPropertySource(
-                        "test-application",
-                        Map.of("spring.application.name", "user-service")
-                )
-        );
+        String[] args = new String[5 + extraArgs.length];
 
-        ConfigClientProperties properties =
-                new ConfigClientProperties(environment);
+        args[0] = "--spring.application.name=user-service";
+        args[1] = "--spring.config.import=configserver:http://localhost:" + port;
+        args[2] = "--spring.cloud.config.fail-fast=true";
+        args[3] = "--spring.main.web-application-type=none";
+        args[4] = "--spring.cloud.config.enabled=true";
 
-        properties.setName("user-service");
-        properties.setProfile("default");
-        properties.setUri(new String[]{"http://localhost:" + port});
-        properties.setFailFast(true);
+        System.arraycopy(extraArgs, 0, args, 5, extraArgs.length);
 
-        return new ConfigServicePropertySourceLocator(properties)
-                .locate(environment);
+        return new SpringApplicationBuilder(TestClientApplication.class)
+                .web(WebApplicationType.NONE)
+                .run(args);
+    }
+
+    @SpringBootConfiguration(proxyBeanMethods = false)
+    @EnableAutoConfiguration
+    static class TestClientApplication {
     }
 }
