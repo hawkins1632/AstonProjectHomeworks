@@ -1,0 +1,81 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+    discovery:
+      enabled: false
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: false
+          routes:
+            - id: user-service
+              uri: ${USER_SERVICE_URI}
+              predicates:
+                - Path=/api/users/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: userService
+                    statusCodes: 500,502,503,504
+                    fallbackUri: forward:/fallback
+
+            - id: notification-service
+              uri: ${NOTIFICATION_SERVICE_URI}
+              predicates:
+                - Path=/api/notifications/**
+              filters:
+                - RewritePath=/api/notifications/(?<segment>.*), /api/notification/$\{segment}
+                - name: CircuitBreaker
+                  args:
+                    name: notificationService
+                    statusCodes: 500,502,503,504
+                    fallbackUri: forward:/fallback
+
+            - id: user-service-api-docs
+              uri: ${USER_SERVICE_URI}
+              predicates:
+                - Path=/v3/api-docs/user-service
+              filters:
+                - RewritePath=/v3/api-docs/user-service$, /v3/api-docs
+
+            - id: notification-service-api-docs
+              uri: ${NOTIFICATION_SERVICE_URI}
+              predicates:
+                - Path=/v3/api-docs/notification-service
+              filters:
+                - RewritePath=/v3/api-docs/notification-service$, /v3/api-docs
+
+eureka:
+  client:
+    enabled: false
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      userService:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        register-health-indicator: true
+      notificationService:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        register-health-indicator: true
+  timelimiter:
+    instances:
+      userService:
+        timeout-duration: 3s
+      notificationService:
+        timeout-duration: 3s

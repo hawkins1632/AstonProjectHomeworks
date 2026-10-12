@@ -1,49 +1,6 @@
-server:
-  port: 8081
-
 spring:
   application:
     name: user-service
 
-  datasource:
-    #Порт-5433, чтобы приложение подключалось к бд в докере, если надо к реальной бд, то порт надо поменять
-    url: ${DB_URL:jdbc:postgresql://localhost:5433/postgres}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:admin}
-    driver-class-name: org.postgresql.Driver
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-
-    properties:
-      hibernate:
-        format_sql: true
-        jdbc:
-          time_zone: UTC
-    defer-datasource-initialization: false
-
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://localhost:8761/eureka/}
-  instance:
-    prefer-ip-address: true
-
-logging:
-  level:
-    root: WARN
-    org.hibernate: WARN
-    org.hibernate.SQL: WARN
-    com.zaxxer.hikari: WARN
-    org.example: INFO
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-
-app:
-  kafka:
-    topic: user-events
+  config:
+    import: "configserver:${CONFIG_SERVER_URI:http://localhost:8888}"

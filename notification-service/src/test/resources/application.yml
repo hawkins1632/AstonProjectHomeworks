@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: notification-service
+
+  config:
+    import: "optional:configserver:${CONFIG_SERVER_URI:http://localhost:8888}"
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+  kafka:
+    consumer:
+      group-id: notification-e2e
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+    properties:
+      "[spring.json.value.default.type]": org.events.UserEvent
+      "[spring.json.trusted.packages]": org.events

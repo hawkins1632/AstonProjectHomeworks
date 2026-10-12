@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   kafka:
     image: apache/kafka:latest
@@ -113,6 +111,24 @@ services:
       - kafka
       - postgres
 
+  config-server:
+    build:
+      context: .
+      dockerfile: config-server/Dockerfile
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      CONFIG_GIT_URI: file:///config-repository
+    volumes:
+      - "C:/Users/KDFX Modes/IdeaProjects/config-repository:/config-repository"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:8888/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
   discovery-server:
     build: ./discovery-server
     container_name: discovery-server
@@ -133,6 +149,8 @@ services:
     ports:
       - "8081:8081"
     depends_on:
+      config-server:
+        condition: service_healthy
       discovery-server:
         condition: service_healthy
       postgres:
@@ -140,6 +158,7 @@ services:
       kafka:
         condition: service_started
     environment:
+      CONFIG_SERVER_URI: http://config-server:8888
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka/
       DB_URL: jdbc:postgresql://postgres:5432/postgres
       DB_USERNAME: postgres
@@ -152,6 +171,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
+      config-server:
+        condition: service_healthy
       discovery-server:
         condition: service_healthy
       user-service:
@@ -159,6 +180,7 @@ services:
       notification-service:
         condition: service_started
     environment:
+      CONFIG_SERVER_URI: http://config-server:8888
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka/
 
   notification-service:
@@ -167,6 +189,8 @@ services:
     ports:
       - "7070:7070"
     depends_on:
+      config-server:
+        condition: service_healthy
       discovery-server:
         condition: service_healthy
       postgres:
@@ -176,6 +200,7 @@ services:
       mailhog:
         condition: service_started
     environment:
+      CONFIG_SERVER_URI: http://config-server:8888
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka/
       DB_URL: jdbc:postgresql://postgres:5432/postgres
       DB_USERNAME: postgres
