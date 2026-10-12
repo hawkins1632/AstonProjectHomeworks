@@ -7,6 +7,7 @@ import org.events.UserEventType;
 import org.notification.model.ProcessedEvent;
 import org.notification.repository.ProcessedEventRepository;
 import org.notification.service.NotificationService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,9 +34,11 @@ public class UserEventConsumer {
      * Обрабатывает входящее событие пользователя из Kafka.
      * <p>
      * Если событие с таким {@code eventId} уже было обработано, оно пропускается.
-     * В зависимости от типа события ({@link UserEventType}) вызывается
-     * соответствующий метод отправки уведомления. После успешной обработки
-     * событие сохраняется в таблицу обработанных событий.
+     * Событие сначала резервируется в таблице {@code processed_events} (в рамках
+     * текущей транзакции), и только после этого отправляется уведомление. Это
+     * исключает дубликаты писем: даже если запись об обработке не сохранится,
+     * письмо ещё не будет отправлено. Если отправка упадёт, транзакция откатится,
+     * резервация исчезнет, и Kafka доставит сообщение повторно (at-least-once).
      *
      * @param event событие пользователя, полученное из Kafka
      */
@@ -52,13 +55,24 @@ public class UserEventConsumer {
             return;
         }
 
+        try {
+            processedEventRepository.save(new ProcessedEvent(event.eventId()));
+        } catch (DataIntegrityViolationException e) {
+            log.info("Событие eventId={} обрабатывается параллельно, пропускаем", event.eventId());
+            return;
+        }
+
+        if (type == null) {
+            log.warn("Событие eventId={} содержит null тип, пропускаем", event.eventId());
+            return;
+        }
+
         switch (type) {
             case CREATED -> notificationService.sendCreated(email);
             case UPDATED -> notificationService.sendUpdated(email);
             case DELETED -> notificationService.sendDeleted(email);
+            default -> log.warn("Неизвестный тип события type={}, событие eventId={} пропущено", type, event.eventId());
         }
-
-        processedEventRepository.save(new ProcessedEvent(event.eventId()));
 
         log.info("Обработано сообщение из Kafka (eventId={}, email={}, type={})", event.eventId(), email, type);
     }

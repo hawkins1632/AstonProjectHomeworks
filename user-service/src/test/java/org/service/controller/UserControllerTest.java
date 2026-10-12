@@ -154,7 +154,10 @@ class UserControllerTest {
         UserRequestDto request = new UserRequestDto("Charlie", "charlie@mail.com", 35);
 
         when(userService.create(any(UserRequestDto.class)))
-                .thenThrow(new DataIntegrityViolationException("duplicate email"));
+                .thenThrow(new DataIntegrityViolationException(
+                        "could not execute statement; SQL [n/a]; "
+                                + "duplicate key value violates unique constraint \"users_email_key\"",
+                        new DataIntegrityViolationException("duplicate key value violates unique constraint \"users_email_key\"")));
 
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -162,6 +165,21 @@ class UserControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.message").value("User with this email already exists"));
+    }
+
+    @Test
+    void create_shouldReturnInternalError_whenOtherConstraintViolated() throws Exception {
+        UserRequestDto request = new UserRequestDto("Charlie", "charlie@mail.com", 35);
+
+        when(userService.create(any(UserRequestDto.class)))
+                .thenThrow(new DataIntegrityViolationException("value too long for column \"name\""));
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").value("Internal server error"));
     }
 
     @Test

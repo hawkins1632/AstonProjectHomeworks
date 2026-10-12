@@ -106,16 +106,28 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Обрабатывает нарушение целостности данных
-     * (например, попытку создать пользователя с уже существующим email).
+     * Обрабатывает нарушение целостности данных.
+     * <p>
+     * HTTP 409 Conflict возвращается только при нарушении уникальности email
+     * (constraint {@code users_email_key}) — попытка создать/обновить пользователя
+     * с уже существующим email. Прочие нарушения целостности (NOT NULL, длина поля
+     * и т.п.) — это внутренние ошибки, поэтому возвращается HTTP 500.
      *
      * @param ex исключение
-     * @return HTTP 409 Conflict с сообщением об ошибке
+     * @return HTTP 409 Conflict при дубликате email, иначе HTTP 500
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(errorResponse(HttpStatus.CONFLICT, "User with this email already exists"));
+        Throwable cause = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause() : ex;
+        String message = cause.getMessage() == null ? "" : cause.getMessage();
+
+        if (message.contains("users_email_key")) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(errorResponse(HttpStatus.CONFLICT, "User with this email already exists"));
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"));
     }
 
     private ErrorResponse errorResponse(HttpStatus status, String message) {
