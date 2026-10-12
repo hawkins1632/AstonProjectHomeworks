@@ -7,6 +7,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.notification.dto.NotificationRequestDto;
 import org.notification.dto.NotificationTypeEnum;
+import org.notification.exception.ServiceError;
+import org.notification.exception.ServiceException;
 import org.notification.service.NotificationServiceImpl;
 
 import static org.mockito.Mockito.*;
@@ -45,6 +47,18 @@ class NotificationControllerImplTest {
     void postEmail_deleted_shouldDelegateToService() {
         controller.postEmail(dto("user@example.com", NotificationTypeEnum.DELETED));
         verify(notificationService).sendDeleted("user@example.com");
+        verifyNoMoreInteractions(notificationService);
+    }
+
+    @Test
+    void postEmail_shouldRejectUnknownType() {
+        NotificationRequestDto request = dto("user@example.com", null);
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> controller.postEmail(request))
+                .isInstanceOf(ServiceException.class)
+                .extracting("error")
+                .isEqualTo(ServiceError.VALIDATION_ERROR);
+
         verifyNoMoreInteractions(notificationService);
     }
 }

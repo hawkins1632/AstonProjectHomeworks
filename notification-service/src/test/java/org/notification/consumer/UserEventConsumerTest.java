@@ -6,11 +6,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.notification.model.ProcessedEvent;
 import org.notification.repository.ProcessedEventRepository;
 import org.notification.service.NotificationServiceImpl;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.UUID;
 
@@ -28,15 +31,16 @@ class UserEventConsumerTest {
     private UserEventConsumer consumer;
 
     @Test
-    void consume_shouldSendEmailAndMarkProcessed_whenEventIsNew() {
+    void consume_shouldReserveEventBeforeSendingEmail_whenEventIsNew() {
         UUID eventId = UUID.randomUUID();
         UserEvent e = new UserEvent(eventId, 1L, "user@example.com", UserEventType.CREATED);
         when(processedEventRepository.existsByEventId(eventId)).thenReturn(false);
 
         consumer.consume(e);
 
-        verify(notificationService).sendCreated("user@example.com");
-        verify(processedEventRepository).save(argThat(p -> p.getEventId().equals(eventId)));
+        InOrder inOrder = inOrder(processedEventRepository, notificationService);
+        inOrder.verify(processedEventRepository).save(argThat(p -> p.getEventId().equals(eventId)));
+        inOrder.verify(notificationService).sendCreated("user@example.com");
     }
 
     @Test
@@ -49,6 +53,20 @@ class UserEventConsumerTest {
 
         verifyNoInteractions(notificationService);
         verify(processedEventRepository, never()).save(any());
+    }
+
+    @Test
+    void consume_shouldSkipSendingEmail_whenEventIsBeingProcessedConcurrently() {
+        UUID eventId = UUID.randomUUID();
+        UserEvent e = new UserEvent(eventId, 1L, "user@example.com", UserEventType.CREATED);
+        when(processedEventRepository.existsByEventId(eventId)).thenReturn(false);
+        when(processedEventRepository.save(any(ProcessedEvent.class)))
+                .thenThrow(new DataIntegrityViolationException("duplicate key violates unique constraint"));
+
+        consumer.consume(e);
+
+        verifyNoInteractions(notificationService);
+        verify(processedEventRepository).save(any(ProcessedEvent.class));
     }
 
     @ParameterizedTest
